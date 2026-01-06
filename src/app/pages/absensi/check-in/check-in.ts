@@ -2,12 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ZXingScannerModule } from '@zxing/ngx-scanner';
+import { BarcodeFormat } from '@zxing/library';
 import { AttendanceService } from '../../../services/attendance.service';
 import { AttendanceRecord, AttendanceStats } from '../../../models/attendance.model';
 
 @Component({
   selector: 'app-check-in',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ZXingScannerModule],
   templateUrl: './check-in.html',
   styleUrl: './check-in.css',
 })
@@ -19,6 +21,15 @@ export class CheckIn implements OnInit {
   messageType: 'success' | 'error' | '' = '';
   todayDate = '';
   currentTime = '';
+
+  // Camera scanner properties
+  showScanner = true;
+  showManualInput = false;
+  availableDevices: MediaDeviceInfo[] = [];
+  currentDevice: MediaDeviceInfo | undefined;
+  hasDevices = false;
+  hasPermission = false;
+  allowedFormats = [BarcodeFormat.QR_CODE];
 
   constructor(private attendanceService: AttendanceService) {}
 
@@ -44,6 +55,46 @@ export class CheckIn implements OnInit {
     this.stats = this.attendanceService.getAttendanceStats(today);
   }
 
+  // Camera scanner methods
+  onCamerasFound(devices: MediaDeviceInfo[]): void {
+    this.availableDevices = devices;
+    this.hasDevices = Boolean(devices && devices.length);
+
+    // Select back camera if available
+    const backCamera = devices.find(device => 
+      /back|rear|environment/i.test(device.label)
+    );
+    this.currentDevice = backCamera || devices[0];
+  }
+
+  onCodeResult(resultString: string): void {
+    if (resultString) {
+      this.qrCodeInput = resultString;
+      this.processCheckIn();
+    }
+  }
+
+  onHasPermission(has: boolean): void {
+    this.hasPermission = has;
+  }
+
+  onDeviceChange(device: MediaDeviceInfo): void {
+    this.currentDevice = device;
+  }
+
+  toggleManualInput(): void {
+    this.showManualInput = !this.showManualInput;
+    this.showScanner = !this.showManualInput;
+    
+    if (this.showManualInput) {
+      // Focus on input after a short delay to ensure it's visible
+      setTimeout(() => {
+        const input = document.querySelector('input[type="text"]') as HTMLInputElement;
+        if (input) input.focus();
+      }, 100);
+    }
+  }
+
   async processCheckIn() {
     if (!this.qrCodeInput.trim()) {
       this.showMessage('Mohon scan atau masukkan kode QR', 'error');
@@ -59,7 +110,7 @@ export class CheckIn implements OnInit {
       this.loadStats();
       this.qrCodeInput = '';
 
-      // Play success sound (optional)
+      // Play success sound
       this.playSound('success');
     } else {
       this.showMessage('QR Code tidak valid atau siswa tidak ditemukan', 'error');
