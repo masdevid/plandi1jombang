@@ -24,53 +24,70 @@ Website resmi SDN Plandi 1 Jombang dengan sistem absensi digital dan manajemen s
 
 - **Frontend**: Angular 21 (Standalone Components)
 - **Styling**: Tailwind CSS 3.4
-- **Backend**: Vercel Serverless Functions
-- **Database**: PostgreSQL (Neon)
-- **Deployment**: Vercel
+- **Backend**: Express.js API Server (Docker) + Vercel Serverless Functions
+- **Database**: PostgreSQL 16 (Docker for local, Neon for Vercel)
+- **Deployment**: Docker (local/production) + Vercel (serverless)
 - **Package Manager**: pnpm
 
 ## 📦 Quick Start
 
-### Prerequisites
+### Option 1: Local Development with Docker (Recommended)
 
-- Node.js 18+
-- pnpm 8+
-- PostgreSQL database (Neon recommended)
+**Prerequisites:**
+- Docker Desktop
+- Node.js 20+
+- pnpm 10+
 
-### Installation
+**Get started in 3 commands:**
 
 \`\`\`bash
-# Clone repository
-git clone <repository-url>
-cd sd-plandi
+# 1. Install API dependencies
+pnpm api:install
 
-# Install dependencies
-pnpm install
+# 2. Setup and test (automated)
+pnpm setup
 
-# Setup environment variables
-cp .env.example .env
-# Edit .env and add your POSTGRES_URL
-
-# Initialize database
-pnpm db:migrate
-
-# Start development server
+# 3. Start frontend
 pnpm start
 \`\`\`
 
-### Environment Variables
+Open http://localhost:4200 🎉
 
-\`\`\`env
-POSTGRES_URL=postgres://username:password@host/database
+See [GETTING_STARTED.md](GETTING_STARTED.md) for detailed guide.
+
+### Option 2: Vercel Deployment (Cloud)
+
+**Prerequisites:**
+- Vercel account
+- PostgreSQL database (Neon recommended)
+
+\`\`\`bash
+# Install Vercel CLI
+pnpm add -g vercel
+
+# Deploy
+vercel --prod
+
+# Configure POSTGRES_URL in Vercel dashboard
+# Settings → Environment Variables → Add POSTGRES_URL
 \`\`\`
 
 ## 📖 Dokumentasi
 
+### Getting Started
+- **[GETTING_STARTED.md](GETTING_STARTED.md)** - Complete step-by-step setup guide
+- **[DOCKER_SETUP.md](DOCKER_SETUP.md)** - Comprehensive Docker documentation
+- **[SETUP_SUMMARY.md](SETUP_SUMMARY.md)** - Quick reference summary
+
+### Development Guides
 - [Database Migration](docs/DATABASE_MIGRATION.md) - Panduan migrasi PostgreSQL
-- [Quick Start Guide](docs/QUICK_START.md) - Panduan cepat API dan development
 - [Admin System](docs/ADMIN_SYSTEM.md) - Admin authentication & authorization
-- [Security Enhancements](docs/SECURITY_ENHANCEMENTS.md) - Security best practices & implementation
-- [Docker Deployment](docs/DOCKER_DEPLOYMENT.md) - Docker containerization & deployment
+- [Local Docker Setup](docs/LOCAL_DOCKER_SETUP.md) - Detailed local development guide
+- [Testing Guide](tests/README.md) - Complete testing documentation
+
+### Features & Updates
+- [Security Enhancements](docs/SECURITY_ENHANCEMENTS.md) - Security best practices
+- [Camera Scanner](docs/CAMERA_SCANNER_UPDATE.md) - QR code scanner implementation
 - [Class Naming Convention](docs/CLASS_NAMING_UPDATE.md) - Sistem penamaan kelas K1-K6
 - [Branding Guide](docs/BRANDING_UPDATE.md) - Logo dan skema warna
 - [SEO Optimization](docs/SEO_UPDATE.md) - Optimasi SEO dan profil sekolah
@@ -78,41 +95,61 @@ POSTGRES_URL=postgres://username:password@host/database
 ## 🛠️ Development
 
 \`\`\`bash
-# Development server (port 4200)
-pnpm start
+# Docker + API server
+pnpm docker:up          # Start PostgreSQL + API
+pnpm docker:down        # Stop services
+pnpm docker:logs        # View logs
+pnpm docker:restart     # Restart API
 
-# Build production
-pnpm build
+# Database
+pnpm db:init            # Initialize database
+pnpm db:migrate:columns # Add new columns
+pnpm db:seed            # Seed with 161 students
 
-# Run database migration
-pnpm db:migrate
+# Testing
+pnpm test:api           # Run API tests
+pnpm test:quick         # Quick sanity check
+pnpm setup              # Automated setup + test
 
-# Lint & format
-pnpm lint
+# Frontend
+pnpm start              # Development server (port 4200)
+pnpm build              # Build for production
 \`\`\`
 
 ## 📁 Struktur Proyek
 
 \`\`\`
 sd-plandi/
-├── api/                    # Vercel Serverless Functions
-│   ├── lib/               # Database & utilities
-│   ├── students.ts        # Student management API
-│   ├── attendance.ts      # Attendance tracking API
-│   ├── leave-requests.ts  # Leave request API
-│   └── migrate.ts         # Database migration script
-├── src/                   # Angular application
+├── api/                      # Vercel Serverless Functions
+│   ├── lib/                 # Database & utilities
+│   ├── students.ts          # Student management API
+│   ├── attendance.ts        # Attendance tracking API
+│   ├── auth.ts              # Authentication API
+│   ├── admin.ts             # Admin dashboard API
+│   └── migrate.ts           # Database migration script
+├── api-server/              # Docker Express API Server
+│   ├── server.js            # Express server (10 endpoints)
+│   └── package.json         # API dependencies
+├── src/                     # Angular application
 │   ├── app/
-│   │   ├── components/   # Reusable components
-│   │   ├── pages/        # Page components
-│   │   ├── models/       # TypeScript interfaces
-│   │   └── services/     # API services
-│   └── index.html        # Main HTML with SEO
-├── public/               # Static assets
-│   ├── icons/           # Logos & favicons
-│   ├── sitemap.xml      # SEO sitemap
-│   └── robots.txt       # Crawler instructions
-└── docs/                # Documentation
+│   │   ├── components/     # Reusable components
+│   │   ├── pages/          # Page components
+│   │   ├── guards/         # Route guards (auth)
+│   │   ├── models/         # TypeScript interfaces
+│   │   └── services/       # API services
+│   └── index.html          # Main HTML with SEO
+├── tests/                   # API test scripts
+│   ├── test-api.js         # Comprehensive Node.js tests
+│   ├── test-api.sh         # Bash test script
+│   └── README.md           # Testing documentation
+├── public/                 # Static assets
+│   ├── icons/             # Logos & favicons
+│   ├── sitemap.xml        # SEO sitemap
+│   └── robots.txt         # Crawler instructions
+├── docs/                   # Documentation
+├── docker-compose.yml      # Docker configuration
+├── Dockerfile.api          # API container build
+└── .env.development        # Local environment
 \`\`\`
 
 ## 🎨 Brand Guidelines
@@ -121,30 +158,56 @@ sd-plandi/
 **Logo**: Tersedia di \`/public/icons/\`
 **Font**: Poppins (heading), Inter (body)
 
-## 📱 API Endpoints
+## 📱 API Endpoints (10 Total)
 
-### Students
-- \`GET /api/students\` - List semua siswa
-- \`GET /api/students?id={id}\` - Detail siswa
-- \`POST /api/students\` - Tambah siswa baru
-- \`PUT /api/students\` - Update siswa
-- \`DELETE /api/students?id={id}\` - Hapus siswa
+### Local Docker: `http://localhost:3001`
+### Vercel: `https://plandi1jombang.vercel.app/api`
 
-### Attendance
-- \`GET /api/attendance\` - List kehadiran
-- \`POST /api/attendance\` - Check-in dengan QR code
-- \`GET /api/attendance/stats\` - Statistik kehadiran
+1. **GET /health** - Health check & database status
+2. **POST/GET /auth** - Authentication (login/verify)
+3. **GET /admin** - Admin dashboard (requires auth)
+4. **GET /students** - 161 students from Excel
+5. **GET/POST /attendance** - Attendance records & check-in
+6. **GET/POST/PUT /leave-requests** - Leave management
+7. **POST /db-init** - Database initialization
+8. **POST /db-migrate-columns** - Schema migrations
+9. **GET /intrakurikuler** - Subjects & class assignments
+10. **GET /ekstrakurikuler** - Activities & members
 
-### Leave Requests
-- \`GET /api/leave-requests\` - List pengajuan izin
-- \`POST /api/leave-requests\` - Submit izin baru
-- \`PUT /api/leave-requests\` - Update status izin
-
-Detail lengkap: [Quick Start Guide](docs/QUICK_START.md)
+Detail lengkap: [GETTING_STARTED.md](GETTING_STARTED.md)
 
 ## 🚀 Deployment
 
-### Option 1: Vercel (Recommended for Quick Deploy)
+### Option 1: Local/Production with Docker (Recommended)
+
+\`\`\`bash
+# 1. Install API dependencies
+pnpm api:install
+
+# 2. Start Docker services (PostgreSQL + API)
+pnpm docker:up
+
+# 3. Initialize database
+pnpm db:init
+pnpm db:migrate:columns
+pnpm db:seed
+
+# 4. Start frontend
+pnpm start
+
+# Access at http://localhost:4200
+# API at http://localhost:3001
+\`\`\`
+
+**Benefits:**
+- ✅ Unlimited API endpoints (no Vercel limit)
+- ✅ No cold starts
+- ✅ Free (no monthly cost)
+- ✅ Full data control
+
+**Details:** See [DOCKER_SETUP.md](DOCKER_SETUP.md)
+
+### Option 2: Vercel (Cloud Deploy)
 
 \`\`\`bash
 # Install Vercel CLI
@@ -159,25 +222,7 @@ vercel --prod
 2. Settings → Environment Variables
 3. Tambahkan \`POSTGRES_URL\` dari Neon
 
-### Option 2: Docker (Self-Hosted)
-
-\`\`\`bash
-# Build and run with Docker Compose
-pnpm docker:build
-pnpm docker:run
-
-# OR manually
-docker build -t sd-plandi:latest .
-docker-compose up -d
-
-# Access at http://localhost:3000
-\`\`\`
-
-**Requires:**
-- Docker 20.10+
-- `.env` file with `POSTGRES_URL`
-
-**Details:** See [Docker Deployment Guide](docs/DOCKER_DEPLOYMENT.md)
+**Note:** Limited to 12 serverless functions on free tier.
 
 ## 📊 Database Schema
 
