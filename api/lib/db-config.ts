@@ -2,8 +2,8 @@ import { sql as vercelSql } from '@vercel/postgres';
 import postgres from 'postgres';
 
 // Environment detection
-const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined;
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isVercel = process.env['VERCEL'] === '1' || process.env['VERCEL_ENV'] !== undefined;
+const isDevelopment = process.env['NODE_ENV'] === 'development';
 
 // Database configuration
 let sql: any;
@@ -14,7 +14,7 @@ if (isVercel) {
   sql = vercelSql;
 } else {
   // Use local PostgreSQL in Docker/dedicated server
-  const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL ||
+  const connectionString = process.env['DATABASE_URL'] || process.env['POSTGRES_URL'] ||
     'postgresql://sd_plandi_user:change_this_password@localhost:5432/sd_plandi';
 
   console.log('Using local PostgreSQL:', connectionString.replace(/:[^:@]+@/, ':***@'));
