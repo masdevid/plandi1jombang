@@ -55,3 +55,16 @@ export interface LeaveRequest {
   parentContact?: string;
   attachmentUrl?: string;
 }
+
+// Utility function to get full class name
+export function getClassDisplayName(classCode: string): string {
+  const classMap: Record<string, string> = {
+    'K1': 'Kelas 1',
+    'K2': 'Kelas 2',
+    'K3': 'Kelas 3',
+    'K4': 'Kelas 4',
+    'K5': 'Kelas 5',
+    'K6': 'Kelas 6'
+  };
+  return classMap[classCode] || classCode;
+}

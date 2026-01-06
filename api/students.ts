@@ -1,12 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import db, { initializeDatabase, seedDatabase } from './lib/database';
+import { sql, initializeDatabase, seedDatabase, mapRowToStudent } from './lib/database';
 import { Student } from './lib/types';
 
 // Initialize database on cold start
-initializeDatabase();
-seedDatabase();
+let initialized = false;
+async function ensureInitialized() {
+  if (!initialized) {
+    await initializeDatabase();
+    await seedDatabase();
+    initialized = true;
+  }
+}
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -17,6 +23,8 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    await ensureInitialized();
+
     const { method } = req;
     const { id, nis, qrCode } = req.query;
 
@@ -24,28 +32,29 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       case 'GET':
         if (id) {
           // Get student by ID
-          const student = db.prepare('SELECT * FROM students WHERE id = ?').get(id) as Student | undefined;
-          if (!student) {
+          const result = await sql`SELECT * FROM students WHERE id = ${id as string}`;
+          if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Student not found' });
           }
-          return res.status(200).json(student);
+          return res.status(200).json(mapRowToStudent(result.rows[0]));
         } else if (nis) {
           // Get student by NIS
-          const student = db.prepare('SELECT * FROM students WHERE nis = ?').get(nis) as Student | undefined;
-          if (!student) {
+          const result = await sql`SELECT * FROM students WHERE nis = ${nis as string}`;
+          if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Student not found' });
           }
-          return res.status(200).json(student);
+          return res.status(200).json(mapRowToStudent(result.rows[0]));
         } else if (qrCode) {
           // Get student by QR code
-          const student = db.prepare('SELECT * FROM students WHERE qrCode = ?').get(qrCode) as Student | undefined;
-          if (!student) {
+          const result = await sql`SELECT * FROM students WHERE qr_code = ${qrCode as string}`;
+          if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Student not found' });
           }
-          return res.status(200).json(student);
+          return res.status(200).json(mapRowToStudent(result.rows[0]));
         } else {
           // Get all students
-          const students = db.prepare('SELECT * FROM students ORDER BY class, name').all() as Student[];
+          const result = await sql`SELECT * FROM students ORDER BY class, name`;
+          const students = result.rows.map(mapRowToStudent);
           return res.status(200).json(students);
         }
 
@@ -58,25 +67,27 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // Check if NIS or QR code already exists
-        const existing = db.prepare('SELECT * FROM students WHERE nis = ? OR qrCode = ?').get(newNis, newQrCode);
-        if (existing) {
+        const existing = await sql`
+          SELECT * FROM students
+          WHERE nis = ${newNis} OR qr_code = ${newQrCode}
+        `;
+        if (existing.rows.length > 0) {
           return res.status(409).json({ error: 'Student with this NIS or QR code already exists' });
         }
 
         // Generate ID
-        const count = (db.prepare('SELECT COUNT(*) as count FROM students').get() as { count: number }).count;
+        const countResult = await sql`SELECT COUNT(*) as count FROM students`;
+        const count = Number(countResult.rows[0].count);
         const newId = `std${String(count + 1).padStart(3, '0')}`;
 
-        const insertStmt = db.prepare(`
-          INSERT INTO students (id, nis, name, class, qrCode, photo, active, createdAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-
         const createdAt = new Date().toISOString();
-        insertStmt.run(newId, newNis, name, className, newQrCode, photo || null, active ? 1 : 0, createdAt);
+        await sql`
+          INSERT INTO students (id, nis, name, class, qr_code, photo, active, created_at)
+          VALUES (${newId}, ${newNis}, ${name}, ${className}, ${newQrCode}, ${photo || null}, ${active ? 1 : 0}, ${createdAt})
+        `;
 
-        const newStudent = db.prepare('SELECT * FROM students WHERE id = ?').get(newId) as Student;
-        return res.status(201).json(newStudent);
+        const newStudentResult = await sql`SELECT * FROM students WHERE id = ${newId}`;
+        return res.status(201).json(mapRowToStudent(newStudentResult.rows[0]));
 
       case 'PUT':
         // Update student
@@ -84,33 +95,26 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(400).json({ error: 'Student ID is required' });
         }
 
-        const existingStudent = db.prepare('SELECT * FROM students WHERE id = ?').get(id);
-        if (!existingStudent) {
+        const existingStudentResult = await sql`SELECT * FROM students WHERE id = ${id as string}`;
+        if (existingStudentResult.rows.length === 0) {
           return res.status(404).json({ error: 'Student not found' });
         }
 
         const { name: updatedName, class: updatedClass, photo: updatedPhoto, active: updatedActive } = req.body;
 
-        const updateStmt = db.prepare(`
+        await sql`
           UPDATE students
-          SET name = COALESCE(?, name),
-              class = COALESCE(?, class),
-              photo = COALESCE(?, photo),
-              active = COALESCE(?, active),
-              updatedAt = CURRENT_TIMESTAMP
-          WHERE id = ?
-        `);
+          SET
+            name = COALESCE(${updatedName || null}, name),
+            class = COALESCE(${updatedClass || null}, class),
+            photo = COALESCE(${updatedPhoto || null}, photo),
+            active = COALESCE(${updatedActive !== undefined ? (updatedActive ? 1 : 0) : null}, active),
+            updated_at = NOW()
+          WHERE id = ${id as string}
+        `;
 
-        updateStmt.run(
-          updatedName || null,
-          updatedClass || null,
-          updatedPhoto || null,
-          updatedActive !== undefined ? (updatedActive ? 1 : 0) : null,
-          id
-        );
-
-        const updatedStudent = db.prepare('SELECT * FROM students WHERE id = ?').get(id) as Student;
-        return res.status(200).json(updatedStudent);
+        const updatedStudentResult = await sql`SELECT * FROM students WHERE id = ${id as string}`;
+        return res.status(200).json(mapRowToStudent(updatedStudentResult.rows[0]));
 
       case 'DELETE':
         // Delete student (soft delete - set active to false)
@@ -118,12 +122,12 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(400).json({ error: 'Student ID is required' });
         }
 
-        const studentToDelete = db.prepare('SELECT * FROM students WHERE id = ?').get(id);
-        if (!studentToDelete) {
+        const studentToDeleteResult = await sql`SELECT * FROM students WHERE id = ${id as string}`;
+        if (studentToDeleteResult.rows.length === 0) {
           return res.status(404).json({ error: 'Student not found' });
         }
 
-        db.prepare('UPDATE students SET active = 0 WHERE id = ?').run(id);
+        await sql`UPDATE students SET active = 0 WHERE id = ${id as string}`;
         return res.status(200).json({ message: 'Student deactivated successfully' });
 
       default:

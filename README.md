@@ -1,59 +1,201 @@
-# SdPlandi
+# SDN Plandi 1 Jombang - Website Resmi
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.4.
+Website resmi SDN Plandi 1 Jombang dengan sistem absensi digital dan manajemen siswa.
 
-## Development server
+## 🏫 Tentang
 
-To start a local development server, run:
+**SDN Plandi 1 Jombang** adalah Sekolah Dasar Negeri yang berkomitmen membangun generasi cerdas, berakhlak mulia, dan berprestasi melalui pendidikan berkualitas yang menyenangkan dan inovatif.
 
-```bash
-ng serve
-```
+**Alamat**: Jl. Sumatra No. 22, Kec. Jombang, Kab. Jombang, Jawa Timur 61419
+**Telepon**: (0321) 851655
+**Email**: info@sdnplandi1jombang.sch.id
+**Website**: https://sdnplandi1jombang.sch.id
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## ✨ Fitur
 
-## Code scaffolding
+- 🏠 **Website Profil Sekolah** - Informasi lengkap tentang sekolah
+- 📱 **Absensi Digital** - Sistem absensi berbasis QR Code
+- 👨‍🎓 **Manajemen Siswa** - Database siswa dengan foto dan QR code
+- 📊 **Laporan Kehadiran** - Dashboard dan laporan kehadiran real-time
+- 👪 **Portal Orang Tua** - Akses untuk orang tua memantau kehadiran anak
+- 📅 **Pengajuan Izin** - Sistem pengajuan izin/sakit online
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## 🚀 Teknologi
 
-```bash
-ng generate component component-name
-```
+- **Frontend**: Angular 21 (Standalone Components)
+- **Styling**: Tailwind CSS 3.4
+- **Backend**: Vercel Serverless Functions
+- **Database**: PostgreSQL (Neon)
+- **Deployment**: Vercel
+- **Package Manager**: pnpm
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 📦 Quick Start
 
-```bash
-ng generate --help
-```
+### Prerequisites
 
-## Building
+- Node.js 18+
+- pnpm 8+
+- PostgreSQL database (Neon recommended)
 
-To build the project run:
+### Installation
 
-```bash
-ng build
-```
+\`\`\`bash
+# Clone repository
+git clone <repository-url>
+cd sd-plandi
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+# Install dependencies
+pnpm install
 
-## Running unit tests
+# Setup environment variables
+cp .env.example .env
+# Edit .env and add your POSTGRES_URL
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+# Initialize database
+pnpm db:migrate
 
-```bash
-ng test
-```
+# Start development server
+pnpm start
+\`\`\`
 
-## Running end-to-end tests
+### Environment Variables
 
-For end-to-end (e2e) testing, run:
+\`\`\`env
+POSTGRES_URL=postgres://username:password@host/database
+\`\`\`
 
-```bash
-ng e2e
-```
+## 📖 Dokumentasi
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+- [Database Migration](docs/DATABASE_MIGRATION.md) - Panduan migrasi PostgreSQL
+- [Quick Start Guide](docs/QUICK_START.md) - Panduan cepat API dan development
+- [Class Naming Convention](docs/CLASS_NAMING_UPDATE.md) - Sistem penamaan kelas K1-K6
+- [Branding Guide](docs/BRANDING_UPDATE.md) - Logo dan skema warna
+- [SEO Optimization](docs/SEO_UPDATE.md) - Optimasi SEO dan profil sekolah
 
-## Additional Resources
+## 🛠️ Development
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+\`\`\`bash
+# Development server (port 4200)
+pnpm start
+
+# Build production
+pnpm build
+
+# Run database migration
+pnpm db:migrate
+
+# Lint & format
+pnpm lint
+\`\`\`
+
+## 📁 Struktur Proyek
+
+\`\`\`
+sd-plandi/
+├── api/                    # Vercel Serverless Functions
+│   ├── lib/               # Database & utilities
+│   ├── students.ts        # Student management API
+│   ├── attendance.ts      # Attendance tracking API
+│   ├── leave-requests.ts  # Leave request API
+│   └── migrate.ts         # Database migration script
+├── src/                   # Angular application
+│   ├── app/
+│   │   ├── components/   # Reusable components
+│   │   ├── pages/        # Page components
+│   │   ├── models/       # TypeScript interfaces
+│   │   └── services/     # API services
+│   └── index.html        # Main HTML with SEO
+├── public/               # Static assets
+│   ├── icons/           # Logos & favicons
+│   ├── sitemap.xml      # SEO sitemap
+│   └── robots.txt       # Crawler instructions
+└── docs/                # Documentation
+\`\`\`
+
+## 🎨 Brand Guidelines
+
+**Warna Utama**: Orange (#f97316)
+**Logo**: Tersedia di \`/public/icons/\`
+**Font**: Poppins (heading), Inter (body)
+
+## 📱 API Endpoints
+
+### Students
+- \`GET /api/students\` - List semua siswa
+- \`GET /api/students?id={id}\` - Detail siswa
+- \`POST /api/students\` - Tambah siswa baru
+- \`PUT /api/students\` - Update siswa
+- \`DELETE /api/students?id={id}\` - Hapus siswa
+
+### Attendance
+- \`GET /api/attendance\` - List kehadiran
+- \`POST /api/attendance\` - Check-in dengan QR code
+- \`GET /api/attendance/stats\` - Statistik kehadiran
+
+### Leave Requests
+- \`GET /api/leave-requests\` - List pengajuan izin
+- \`POST /api/leave-requests\` - Submit izin baru
+- \`PUT /api/leave-requests\` - Update status izin
+
+Detail lengkap: [Quick Start Guide](docs/QUICK_START.md)
+
+## 🚀 Deployment
+
+### Vercel
+
+\`\`\`bash
+# Install Vercel CLI
+pnpm add -g vercel
+
+# Deploy
+vercel --prod
+\`\`\`
+
+### Environment Variables (Vercel)
+
+1. Buka project di Vercel Dashboard
+2. Settings → Environment Variables
+3. Tambahkan \`POSTGRES_URL\` dari Neon
+
+## 📊 Database Schema
+
+**Students**: id, nis, name, class (K1-K6), photo, qr_code, active
+**Attendance**: id, student_id, check_in_time, date, status
+**Leave Requests**: id, student_id, start_date, end_date, reason, status
+
+Detail lengkap: [Database Migration](docs/DATABASE_MIGRATION.md)
+
+## 🔒 Security
+
+- ✅ SQL injection protection (parameterized queries)
+- ✅ CORS configured for production domain
+- ✅ Environment variables for secrets
+- ✅ Input validation on all endpoints
+- ✅ Active students only in public queries
+
+## 🤝 Contributing
+
+1. Fork the project
+2. Create feature branch (\`git checkout -b feature/AmazingFeature\`)
+3. Commit changes (\`git commit -m 'feat: add amazing feature'\`)
+4. Push to branch (\`git push origin feature/AmazingFeature\`)
+5. Open Pull Request
+
+## 📄 License
+
+Copyright © 2026 SDN Plandi 1 Jombang. All rights reserved.
+
+## 👥 Team
+
+Developed with ❤️ for SDN Plandi 1 Jombang
+
+## 📞 Support
+
+Untuk pertanyaan atau bantuan:
+- Email: info@sdnplandi1jombang.sch.id
+- Phone: (0321) 851655
+- Website: https://sdnplandi1jombang.sch.id
+
+---
+
+**SDN Plandi 1 Jombang** - Membangun Generasi Cerdas dan Berakhlak Mulia

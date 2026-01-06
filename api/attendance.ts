@@ -1,12 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import db, { initializeDatabase, seedDatabase } from './lib/database';
-import { AttendanceRecord, AttendanceStats } from './lib/types';
+import { sql, initializeDatabase, seedDatabase, mapRowToAttendance, mapRowToStudent } from './lib/database';
+import { AttendanceStats } from './lib/types';
 
 // Initialize database on cold start
-initializeDatabase();
-seedDatabase();
+let initialized = false;
+async function ensureInitialized() {
+  if (!initialized) {
+    await initializeDatabase();
+    await seedDatabase();
+    initialized = true;
+  }
+}
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -17,6 +23,8 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    await ensureInitialized();
+
     const { method } = req;
     const { date, studentId, className, action } = req.query;
 
@@ -24,46 +32,50 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       case 'GET':
         if (action === 'stats' && date) {
           // Get attendance statistics for a specific date
-          const stats = getAttendanceStats(date as string);
+          const stats = await getAttendanceStats(date as string);
           return res.status(200).json(stats);
         }
 
         if (date && className) {
           // Get attendance by class and date
-          const records = db.prepare(`
+          const result = await sql`
             SELECT * FROM attendance
-            WHERE date = ? AND studentClass = ?
-            ORDER BY checkInTime DESC
-          `).all(date, className) as AttendanceRecord[];
+            WHERE date = ${date as string} AND student_class = ${className as string}
+            ORDER BY check_in_time DESC
+          `;
+          const records = result.rows.map(mapRowToAttendance);
           return res.status(200).json(records);
         }
 
         if (date) {
           // Get attendance by date
-          const records = db.prepare(`
+          const result = await sql`
             SELECT * FROM attendance
-            WHERE date = ?
-            ORDER BY checkInTime DESC
-          `).all(date) as AttendanceRecord[];
+            WHERE date = ${date as string}
+            ORDER BY check_in_time DESC
+          `;
+          const records = result.rows.map(mapRowToAttendance);
           return res.status(200).json(records);
         }
 
         if (studentId) {
           // Get attendance by student
-          const records = db.prepare(`
+          const result = await sql`
             SELECT * FROM attendance
-            WHERE studentId = ?
+            WHERE student_id = ${studentId as string}
             ORDER BY date DESC
-          `).all(studentId) as AttendanceRecord[];
+          `;
+          const records = result.rows.map(mapRowToAttendance);
           return res.status(200).json(records);
         }
 
         // Get all attendance records
-        const allRecords = db.prepare(`
+        const allResult = await sql`
           SELECT * FROM attendance
-          ORDER BY date DESC, checkInTime DESC
+          ORDER BY date DESC, check_in_time DESC
           LIMIT 100
-        `).all() as AttendanceRecord[];
+        `;
+        const allRecords = allResult.rows.map(mapRowToAttendance);
         return res.status(200).json(allRecords);
 
       case 'POST':
@@ -74,26 +86,31 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // Get student
-        const student = qrCode
-          ? db.prepare('SELECT * FROM students WHERE qrCode = ?').get(qrCode)
-          : db.prepare('SELECT * FROM students WHERE id = ?').get(studentId);
+        const studentResult = qrCode
+          ? await sql`SELECT * FROM students WHERE qr_code = ${qrCode}`
+          : await sql`SELECT * FROM students WHERE id = ${studentId as string}`;
 
-        if (!student || !student.active) {
+        if (studentResult.rows.length === 0) {
+          return res.status(404).json({ error: 'Student not found or inactive' });
+        }
+
+        const student = mapRowToStudent(studentResult.rows[0]);
+        if (!student.active) {
           return res.status(404).json({ error: 'Student not found or inactive' });
         }
 
         const today = new Date().toISOString().split('T')[0];
 
         // Check if already checked in today
-        const existingRecord = db.prepare(`
+        const existingResult = await sql`
           SELECT * FROM attendance
-          WHERE studentId = ? AND date = ?
-        `).get(student.id, today);
+          WHERE student_id = ${student.id} AND date = ${today}
+        `;
 
-        if (existingRecord && !status) {
+        if (existingResult.rows.length > 0 && !status) {
           return res.status(409).json({
             error: 'Already checked in today',
-            record: existingRecord
+            record: mapRowToAttendance(existingResult.rows[0])
           });
         }
 
@@ -107,28 +124,17 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         const recordStatus = status || (isLate ? 'terlambat' : 'hadir');
 
         // Generate ID
-        const count = (db.prepare('SELECT COUNT(*) as count FROM attendance').get() as { count: number }).count;
+        const countResult = await sql`SELECT COUNT(*) as count FROM attendance`;
+        const count = Number(countResult.rows[0].count);
         const newId = `att${String(count + 1).padStart(6, '0')}`;
 
-        const insertStmt = db.prepare(`
-          INSERT INTO attendance (id, studentId, studentName, studentNis, studentClass, checkInTime, date, status, notes)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
+        await sql`
+          INSERT INTO attendance (id, student_id, student_name, student_nis, student_class, check_in_time, date, status, notes)
+          VALUES (${newId}, ${student.id}, ${student.name}, ${student.nis}, ${student.class}, ${checkInTime}, ${today}, ${recordStatus}, ${notes || null})
+        `;
 
-        insertStmt.run(
-          newId,
-          student.id,
-          student.name,
-          student.nis,
-          student.class,
-          checkInTime,
-          today,
-          recordStatus,
-          notes || null
-        );
-
-        const newRecord = db.prepare('SELECT * FROM attendance WHERE id = ?').get(newId) as AttendanceRecord;
-        return res.status(201).json(newRecord);
+        const newRecordResult = await sql`SELECT * FROM attendance WHERE id = ${newId}`;
+        return res.status(201).json(mapRowToAttendance(newRecordResult.rows[0]));
 
       case 'PUT':
         // Update attendance record (e.g., checkout)
@@ -138,23 +144,22 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(400).json({ error: 'Attendance ID is required' });
         }
 
-        const recordToUpdate = db.prepare('SELECT * FROM attendance WHERE id = ?').get(id);
-        if (!recordToUpdate) {
+        const recordToUpdateResult = await sql`SELECT * FROM attendance WHERE id = ${id}`;
+        if (recordToUpdateResult.rows.length === 0) {
           return res.status(404).json({ error: 'Attendance record not found' });
         }
 
-        const updateStmt = db.prepare(`
+        await sql`
           UPDATE attendance
-          SET checkOutTime = COALESCE(?, checkOutTime),
-              status = COALESCE(?, status),
-              notes = COALESCE(?, notes)
-          WHERE id = ?
-        `);
+          SET
+            check_out_time = COALESCE(${newCheckOutTime || null}, check_out_time),
+            status = COALESCE(${newStatus || null}, status),
+            notes = COALESCE(${newNotes || null}, notes)
+          WHERE id = ${id}
+        `;
 
-        updateStmt.run(newCheckOutTime || null, newStatus || null, newNotes || null, id);
-
-        const updatedRecord = db.prepare('SELECT * FROM attendance WHERE id = ?').get(id) as AttendanceRecord;
-        return res.status(200).json(updatedRecord);
+        const updatedRecordResult = await sql`SELECT * FROM attendance WHERE id = ${id}`;
+        return res.status(200).json(mapRowToAttendance(updatedRecordResult.rows[0]));
 
       default:
         res.setHeader('Allow', ['GET', 'POST', 'PUT']);
@@ -166,10 +171,12 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-function getAttendanceStats(date: string): AttendanceStats {
-  const totalStudents = (db.prepare('SELECT COUNT(*) as count FROM students WHERE active = 1').get() as { count: number }).count;
+async function getAttendanceStats(date: string): Promise<AttendanceStats> {
+  const totalStudentsResult = await sql`SELECT COUNT(*) as count FROM students WHERE active = 1`;
+  const totalStudents = Number(totalStudentsResult.rows[0].count);
 
-  const attendance = db.prepare('SELECT * FROM attendance WHERE date = ?').all(date) as AttendanceRecord[];
+  const attendanceResult = await sql`SELECT * FROM attendance WHERE date = ${date}`;
+  const attendance = attendanceResult.rows.map(mapRowToAttendance);
 
   const stats: AttendanceStats = {
     totalStudents,

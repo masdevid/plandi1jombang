@@ -1,0 +1,21 @@
+{
+  "name": "SDN Plandi 1 Jombang",
+  "short_name": "SDN Plandi 1 Jombang",
+  "description": "Website Resmi SDN Plandi 1 Jombang",
+  "icons": [
+    {
+      "src": "/icons/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#f97316",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}

@@ -1,0 +1,10 @@
+# robots.txt for SDN Plandi 1 Jombang
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://sdnplandi1jombang.sch.id/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 10

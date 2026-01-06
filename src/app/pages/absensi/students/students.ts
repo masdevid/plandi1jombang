@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AttendanceService } from '../../../services/attendance.service';
-import { Student } from '../../../models/attendance.model';
+import { Student, getClassDisplayName } from '../../../models/attendance.model';
 import * as QRCode from 'qrcode';
 
 @Component({
@@ -44,7 +44,7 @@ export class Students implements OnInit {
         width: 300,
         margin: 2,
         color: {
-          dark: '#0ea5e9',
+          dark: '#f97316',
           light: '#ffffff'
         }
       });
@@ -69,6 +69,10 @@ export class Students implements OnInit {
     this.qrCodeDataUrl = '';
   }
 
+  getClassDisplayName(classCode: string): string {
+    return getClassDisplayName(classCode);
+  }
+
   async printAllQRCodes() {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -85,7 +89,7 @@ export class Students implements OnInit {
           }
           .qr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
           .qr-card {
-            border: 2px solid #0ea5e9;
+            border: 2px solid #f97316;
             border-radius: 12px;
             padding: 15px;
             text-align: center;
@@ -95,7 +99,7 @@ export class Students implements OnInit {
           .qr-card h3 { font-size: 16px; margin: 10px 0 5px; color: #1e40af; }
           .qr-card p { font-size: 14px; margin: 3px 0; color: #64748b; }
           .header { text-align: center; margin-bottom: 30px; }
-          .header h1 { color: #0ea5e9; margin-bottom: 5px; }
+          .header h1 { color: #f97316; margin-bottom: 5px; }
         </style>
       </head>
       <body>
@@ -115,7 +119,7 @@ export class Students implements OnInit {
         const qrDataUrl = await QRCode.toDataURL(student.qrCode, {
           width: 150,
           margin: 1,
-          color: { dark: '#0ea5e9', light: '#ffffff' }
+          color: { dark: '#f97316', light: '#ffffff' }
         });
 
         htmlContent += `
@@ -123,7 +127,7 @@ export class Students implements OnInit {
             <img src="${qrDataUrl}" alt="QR Code for ${student.name}">
             <h3>${student.name}</h3>
             <p>NIS: ${student.nis}</p>
-            <p>Kelas: ${student.class}</p>
+            <p>${getClassDisplayName(student.class)}</p>
           </div>
         `;
       } catch (error) {

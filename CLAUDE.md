@@ -18,6 +18,7 @@ You are a **senior software engineer** for the **SDN Plandi** elementary school 
 - Document with concise JSDoc and inline comments for complex logic.
 - Commit meaningful messages; follow semantic versioning.
 - For data/APIs, prefer reliable free sources 
+- Move documentations to /docs folder
 
 ## Workflow
 1. Plan → clarify requirements.
