@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -32,6 +33,20 @@ export const routes: Routes = [
   {
     path: 'absensi/portal-orangtua',
     loadComponent: () => import('./pages/absensi/parent-portal/parent-portal').then(m => m.ParentPortal)
+  },
+  {
+    path: 'admin/login',
+    loadComponent: () => import('./pages/admin/login/login').then(m => m.Login)
+  },
+  {
+    path: 'admin/dashboard',
+    loadComponent: () => import('./pages/admin/dashboard/dashboard').then(m => m.Dashboard),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'admin',
+    redirectTo: 'admin/dashboard',
+    pathMatch: 'full'
   },
   {
     path: '**',
