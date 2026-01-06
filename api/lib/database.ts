@@ -135,7 +135,7 @@ export async function seedDatabase() {
       console.log('Seeding database with students from Excel file...');
 
       // Import students data from parsed Excel file
-      const studentsModule = await import('./students-data.json', { assert: { type: 'json' } });
+      const studentsModule = await import('./students-data.json', { with: { type: 'json' } });
       const studentsData = studentsModule.default;
 
       for (const student of studentsData) {
