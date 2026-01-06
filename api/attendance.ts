@@ -70,7 +70,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json(allRecords);
 
       case 'POST':
-        const { qrCode, notes, status } = req.body;
+        const { qrCode, notes, status, scannedBy, scannerName } = req.body;
 
         if (!qrCode && !studentId) {
           return res.status(400).json({ error: 'QR code or student ID is required' });
@@ -120,8 +120,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const newId = `att${String(count + 1).padStart(6, '0')}`;
 
         await sql`
-          INSERT INTO attendance (id, student_id, student_name, student_nis, student_class, check_in_time, date, status, notes)
-          VALUES (${newId}, ${student.id}, ${student.name}, ${student.nis}, ${student.class}, ${checkInTime}, ${today}, ${recordStatus}, ${notes || null})
+          INSERT INTO attendance (id, student_id, student_name, student_nis, student_class, check_in_time, date, status, scanned_by, scanner_name, notes)
+          VALUES (${newId}, ${student.id}, ${student.name}, ${student.nis}, ${student.class}, ${checkInTime}, ${today}, ${recordStatus}, ${scannedBy || null}, ${scannerName || null}, ${notes || null})
         `;
 
         const newRecordResult = await sql`SELECT * FROM attendance WHERE id = ${newId}`;

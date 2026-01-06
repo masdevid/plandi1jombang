@@ -3,6 +3,9 @@ export interface Student {
   nis: string;
   name: string;
   class: string;
+  gender?: string;
+  dateOfBirth?: string;
+  religion?: string;
   photo?: string;
   qrCode: string;
   active: boolean;
@@ -19,6 +22,8 @@ export interface AttendanceRecord {
   checkOutTime?: string;
   date: string;
   status: 'hadir' | 'terlambat' | 'izin' | 'sakit' | 'alpha';
+  scannedBy?: string;  // User ID who scanned the attendance
+  scannerName?: string; // Name of the user who scanned
   notes?: string;
 }
 

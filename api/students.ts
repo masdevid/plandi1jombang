@@ -51,7 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case 'POST':
         // Create new student
-        const { nis: newNis, name, class: className, qrCode: newQrCode, photo, active = true } = req.body;
+        const { nis: newNis, name, class: className, gender, dateOfBirth, religion, qrCode: newQrCode, photo, active = true } = req.body;
 
         if (!newNis || !name || !className || !newQrCode) {
           return res.status(400).json({ error: 'Missing required fields' });
@@ -73,8 +73,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const createdAt = new Date().toISOString();
         await sql`
-          INSERT INTO students (id, nis, name, class, qr_code, photo, active, created_at)
-          VALUES (${newId}, ${newNis}, ${name}, ${className}, ${newQrCode}, ${photo || null}, ${active ? 1 : 0}, ${createdAt})
+          INSERT INTO students (id, nis, name, class, gender, date_of_birth, religion, qr_code, photo, active, created_at)
+          VALUES (${newId}, ${newNis}, ${name}, ${className}, ${gender || null}, ${dateOfBirth || null}, ${religion || null}, ${newQrCode}, ${photo || null}, ${active ? 1 : 0}, ${createdAt})
         `;
 
         const newStudentResult = await sql`SELECT * FROM students WHERE id = ${newId}`;
@@ -91,13 +91,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(404).json({ error: 'Student not found' });
         }
 
-        const { name: updatedName, class: updatedClass, photo: updatedPhoto, active: updatedActive } = req.body;
+        const { name: updatedName, class: updatedClass, gender: updatedGender, dateOfBirth: updatedDob, religion: updatedReligion, photo: updatedPhoto, active: updatedActive } = req.body;
 
         await sql`
           UPDATE students
           SET
             name = COALESCE(${updatedName || null}, name),
             class = COALESCE(${updatedClass || null}, class),
+            gender = COALESCE(${updatedGender || null}, gender),
+            date_of_birth = COALESCE(${updatedDob || null}, date_of_birth),
+            religion = COALESCE(${updatedReligion || null}, religion),
             photo = COALESCE(${updatedPhoto || null}, photo),
             active = COALESCE(${updatedActive !== undefined ? (updatedActive ? 1 : 0) : null}, active),
             updated_at = NOW()

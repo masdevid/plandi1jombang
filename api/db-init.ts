@@ -1,8 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { initializeDatabase, seedDatabase } from './lib/database.js';
+import { initializeDatabase, seedDatabase, sql } from './lib/database.js';
 
 // This endpoint can be called once to initialize the database
 // Call it via: curl -X POST https://your-domain.vercel.app/api/db-init
+// Force reseed: curl -X POST https://your-domain.vercel.app/api/db-init?force=true
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST method
   if (req.method !== 'POST') {
@@ -10,11 +11,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    console.log('Starting database initialization...');
+    const { force } = req.query;
+    console.log('Starting database initialization...', force === 'true' ? '(FORCE MODE)' : '');
 
     // Initialize database schema
     await initializeDatabase();
     console.log('✓ Database schema initialized');
+
+    // If force=true, delete existing students and reseed
+    if (force === 'true') {
+      console.log('Force mode: Deleting existing students...');
+      await sql`DELETE FROM attendance`;
+      await sql`DELETE FROM leave_requests`;
+      await sql`DELETE FROM students WHERE id LIKE 'std%'`; // Only delete seeded students
+      console.log('✓ Existing data cleared');
+    }
 
     // Seed initial data
     await seedDatabase();
@@ -22,7 +33,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({
       success: true,
-      message: 'Database initialized and seeded successfully',
+      message: force === 'true'
+        ? 'Database force re-seeded successfully'
+        : 'Database initialized and seeded successfully',
       timestamp: new Date().toISOString()
     });
   } catch (error) {

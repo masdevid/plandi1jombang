@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: sd-plandi-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-sd_plandi}
+      POSTGRES_USER: ${DB_USER:-sd_plandi_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_this_password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./backups:/backups
+    networks:
+      - sd-plandi-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-sd_plandi_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "127.0.0.1:5432:5432"  # Only accessible from localhost for debugging
+
+  # Application Server
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sd-plandi-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # Use DATABASE_URL for local postgres (not POSTGRES_URL which is for Vercel)
+      - DATABASE_URL=postgresql://${DB_USER:-sd_plandi_user}:${DB_PASSWORD:-change_this_password}@db:5432/${DB_NAME:-sd_plandi}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    networks:
+      - sd-plandi-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/ping', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Nginx Reverse Proxy (Optional - comment out if not using SSL)
+  nginx:
+    image: nginx:alpine
+    container_name: sd-plandi-nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx-cache:/var/cache/nginx
+    networks:
+      - sd-plandi-network
+    profiles:
+      - with-nginx  # Only starts if profile is specified: docker-compose --profile with-nginx up
+
+volumes:
+  postgres-data:
+    driver: local
+  nginx-cache:
+    driver: local
+
+networks:
+  sd-plandi-network:
+    driver: bridge

@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { BarcodeFormat } from '@zxing/library';
 import { AttendanceService } from '../../../services/attendance.service';
+import { AuthService } from '../../../services/auth.service';
 import { AttendanceRecord, AttendanceStats } from '../../../models/attendance.model';
 
 @Component({
@@ -31,9 +32,20 @@ export class CheckIn implements OnInit {
   hasPermission = false;
   allowedFormats = [BarcodeFormat.QR_CODE];
 
-  constructor(private attendanceService: AttendanceService) {}
+  constructor(
+    private attendanceService: AttendanceService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
+    // Verify authentication
+    const user = this.authService.getCurrentUser();
+    if (!user) {
+      this.router.navigate(['/admin/login']);
+      return;
+    }
+
     this.updateDateTime();
     this.loadStats();
     setInterval(() => this.updateDateTime(), 1000);
@@ -101,7 +113,19 @@ export class CheckIn implements OnInit {
       return;
     }
 
-    const result = this.attendanceService.checkIn(this.qrCodeInput.trim());
+    // Get current user for scanner tracking
+    const user = this.authService.getCurrentUser();
+    if (!user) {
+      this.showMessage('Sesi Anda telah berakhir, silakan login kembali', 'error');
+      this.router.navigate(['/admin/login']);
+      return;
+    }
+
+    const result = this.attendanceService.checkIn(
+      this.qrCodeInput.trim(),
+      user.id,
+      user.name
+    );
 
     if (result) {
       this.lastCheckIn = result;

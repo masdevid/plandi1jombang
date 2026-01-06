@@ -19,6 +19,8 @@ export interface AttendanceRecord {
   checkOutTime?: string;
   date: string;
   status: 'hadir' | 'terlambat' | 'izin' | 'sakit' | 'alpha';
+  scannedBy?: string;
+  scannerName?: string;
   notes?: string;
 }
 

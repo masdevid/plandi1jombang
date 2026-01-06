@@ -5,8 +5,8 @@ FROM node:20-alpine AS angular-builder
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm using corepack
+RUN corepack enable && corepack prepare pnpm@10.26.2 --activate
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
@@ -20,36 +20,46 @@ COPY . .
 # Build Angular application
 RUN pnpm build
 
-# Stage 2: API Server (Node.js)
+# Stage 2: Production server
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm using corepack
+RUN corepack enable && corepack prepare pnpm@10.26.2 --activate
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
 
-# Install production dependencies only
+# Install production dependencies only (including postgres for local DB)
 RUN pnpm install --prod --frozen-lockfile
 
 # Copy API code
 COPY api ./api
 
+# Copy server file
+COPY server.js ./
+
 # Copy built Angular app from builder stage
-COPY --from=angular-builder /app/dist/sd-plandi ./public
+COPY --from=angular-builder /app/dist ./dist
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 && \
+    chown -R nodejs:nodejs /app
+
+USER nodejs
 
 # Expose port
 EXPOSE 3000
 
-# Environment variables
+# Environment variables (can be overridden by docker-compose or docker run)
 ENV NODE_ENV=production
 ENV PORT=3000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/api/ping', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Start server
-CMD ["node", "api/server.js"]
+CMD ["node", "server.js"]

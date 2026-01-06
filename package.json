@@ -10,11 +10,12 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "db:migrate": "tsx api/migrate.ts",
-    "server": "node api/server.js",
+    "server": "node server.js",
     "docker:build": "docker build -t sd-plandi:latest .",
-    "docker:run": "docker-compose up -d",
-    "docker:stop": "docker-compose down",
-    "docker:logs": "docker-compose logs -f"
+    "docker:run": "docker-compose -f docker-compose.production.yml up -d",
+    "docker:stop": "docker-compose -f docker-compose.production.yml down",
+    "docker:logs": "docker-compose -f docker-compose.production.yml logs -f",
+    "docker:init": "docker-compose -f docker-compose.production.yml exec app node -e \"import('./api/db-init.js').then(m => m.default({method:'POST'}, {status:(c)=>({json:(d)=>console.log(d)}), setHeader:()=>{}}))\""
   },
   "prettier": {
     "printWidth": 100,
@@ -45,9 +46,11 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "ngx-scanner": "^0.0.0",
+    "postgres": "^3.4.8",
     "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@angular/build": "^21.0.4",

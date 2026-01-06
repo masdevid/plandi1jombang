@@ -13,26 +13,51 @@
       <!-- Search Student -->
       <div class="card mb-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-4">Cari Data Siswa</h2>
-        <p class="text-gray-600 mb-4">Masukkan NIS siswa untuk melihat data kehadiran</p>
+        <p class="text-gray-600 mb-4">Ketik NIS atau nama siswa untuk mencari</p>
 
-        <div class="flex gap-3">
+        <div class="relative">
           <input
             type="text"
-            [(ngModel)]="nisInput"
-            (keyup.enter)="searchStudent()"
-            placeholder="Masukkan NIS siswa"
-            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            [(ngModel)]="searchInput"
+            (ngModelChange)="onSearchInput()"
+            placeholder="Ketik NIS atau nama siswa..."
+            class="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
-          <button
-            (click)="searchStudent()"
-            class="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
-          >
-            Cari
-          </button>
+          @if (searchInput) {
+            <button
+              (click)="clearSearch()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          }
+
+          <!-- Search Results Dropdown -->
+          @if (searchResults.length > 0) {
+            <div class="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto z-10">
+              @for (result of searchResults; track result.id) {
+                <button
+                  (click)="selectStudent(result)"
+                  class="w-full px-4 py-3 hover:bg-gray-50 text-left border-b border-gray-100 last:border-b-0 transition-colors"
+                >
+                  <p class="font-semibold text-gray-900">{{ result.name }}</p>
+                  <p class="text-sm text-gray-600">NIS: {{ result.nis }} · Kelas: {{ result.class }}</p>
+                </button>
+              }
+            </div>
+          }
+
+          @if (isSearching) {
+            <div class="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center">
+              <p class="text-gray-600">Mencari...</p>
+            </div>
+          }
         </div>
 
         @if (searchError) {
-          <div class="mt-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
+          <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg">
             {{ searchError }}
           </div>
         }

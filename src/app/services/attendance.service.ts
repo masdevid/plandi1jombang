@@ -9,6 +9,9 @@ import attendanceData from '../data/attendance-db.json';
 export class AttendanceService {
   private dbSubject = new BehaviorSubject<AttendanceDatabase>(attendanceData as AttendanceDatabase);
   public db$ = this.dbSubject.asObservable();
+  private apiUrl = '/api';
+  private studentsCache: Student[] = [];
+  private studentsCacheLoaded = false;
 
   private get db(): AttendanceDatabase {
     return this.dbSubject.value;
@@ -21,9 +24,30 @@ export class AttendanceService {
     console.log('Database updated:', db);
   }
 
-  // Student Management
-  getStudents(): Student[] {
+  // Student Management - fetch from API
+  async loadStudents(): Promise<Student[]> {
+    if (this.studentsCacheLoaded && this.studentsCache.length > 0) {
+      return this.studentsCache;
+    }
+
+    try {
+      const response = await fetch(`${this.apiUrl}/students`);
+      if (response.ok) {
+        this.studentsCache = await response.json();
+        this.studentsCacheLoaded = true;
+        return this.studentsCache;
+      }
+    } catch (error) {
+      console.error('Error loading students from API:', error);
+    }
+
+    // Fallback to local data if API fails
     return this.db.students;
+  }
+
+  getStudents(): Student[] {
+    // Return cached data if available, otherwise return local data
+    return this.studentsCacheLoaded ? this.studentsCache : this.db.students;
   }
 
   getStudentById(id: string): Student | undefined {
@@ -54,7 +78,7 @@ export class AttendanceService {
   }
 
   // Attendance Management
-  checkIn(qrCode: string, notes?: string): AttendanceRecord | null {
+  checkIn(qrCode: string, scannedBy?: string, scannerName?: string, notes?: string): AttendanceRecord | null {
     const student = this.getStudentByQrCode(qrCode);
     if (!student || !student.active) {
       return null;
@@ -87,6 +111,8 @@ export class AttendanceService {
       checkInTime,
       date: today,
       status: isLate ? 'terlambat' : 'hadir',
+      scannedBy,
+      scannerName,
       notes
     };
 

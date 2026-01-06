@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { AttendanceService } from '../../../services/attendance.service';
 import { Student, AttendanceRecord, LeaveRequest } from '../../../models/attendance.model';
 
@@ -10,11 +12,15 @@ import { Student, AttendanceRecord, LeaveRequest } from '../../../models/attenda
   templateUrl: './parent-portal.html',
   styleUrl: './parent-portal.css',
 })
-export class ParentPortal implements OnInit {
+export class ParentPortal implements OnInit, OnDestroy {
   // Search
-  nisInput = '';
+  searchInput = '';
+  searchResults: Student[] = [];
   student: Student | null = null;
   searchError = '';
+  isSearching = false;
+  private searchSubject = new Subject<string>();
+  private searchSubscription?: Subscription;
 
   // Attendance History
   attendanceRecords: AttendanceRecord[] = [];
@@ -40,9 +46,26 @@ export class ParentPortal implements OnInit {
 
   constructor(private attendanceService: AttendanceService) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     this.initializeMonths();
     this.selectedMonth = new Date().toISOString().substring(0, 7);
+
+    // Load students from API
+    await this.attendanceService.loadStudents();
+
+    // Setup debounced search
+    this.searchSubscription = this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(searchTerm => {
+      this.performSearch(searchTerm);
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
   }
 
   initializeMonths() {
@@ -53,26 +76,55 @@ export class ParentPortal implements OnInit {
     }
   }
 
-  searchStudent() {
+  onSearchInput() {
+    this.searchSubject.next(this.searchInput);
+  }
+
+  performSearch(searchTerm: string) {
     this.searchError = '';
+    this.searchResults = [];
+    this.isSearching = false;
+
+    if (!searchTerm.trim()) {
+      return;
+    }
+
+    this.isSearching = true;
+
+    const allStudents = this.attendanceService.getStudents();
+    const term = searchTerm.trim().toLowerCase();
+
+    // Search by NIS or name
+    this.searchResults = allStudents.filter(s =>
+      s.active && (
+        s.nis.toLowerCase().includes(term) ||
+        s.name.toLowerCase().includes(term)
+      )
+    ).slice(0, 10); // Limit to 10 results
+
+    this.isSearching = false;
+
+    if (this.searchResults.length === 0) {
+      this.searchError = 'Tidak ada siswa yang ditemukan';
+    }
+  }
+
+  selectStudent(student: Student) {
+    this.student = student;
+    this.searchInput = `${student.nis} - ${student.name}`;
+    this.searchResults = [];
+    this.searchError = '';
+    this.loadStudentData();
+  }
+
+  clearSearch() {
+    this.searchInput = '';
+    this.searchResults = [];
     this.student = null;
     this.attendanceRecords = [];
     this.leaveRequests = [];
     this.todayStatus = null;
-
-    if (!this.nisInput.trim()) {
-      this.searchError = 'Mohon masukkan NIS siswa';
-      return;
-    }
-
-    const foundStudent = this.attendanceService.getStudentByNis(this.nisInput.trim());
-    if (!foundStudent) {
-      this.searchError = 'Siswa dengan NIS tersebut tidak ditemukan';
-      return;
-    }
-
-    this.student = foundStudent;
-    this.loadStudentData();
+    this.searchError = '';
   }
 
   loadStudentData() {

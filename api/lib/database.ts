@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from './db-config.js';
 import { Student, AttendanceRecord, LeaveRequest } from './types.js';
 import crypto from 'node:crypto';
 
@@ -12,6 +12,9 @@ export async function initializeDatabase() {
         nis TEXT UNIQUE NOT NULL,
         name TEXT NOT NULL,
         class TEXT NOT NULL,
+        gender TEXT,
+        date_of_birth TEXT,
+        religion TEXT,
         photo TEXT,
         qr_code TEXT UNIQUE NOT NULL,
         active INTEGER NOT NULL DEFAULT 1,
@@ -63,9 +66,12 @@ export async function initializeDatabase() {
         check_out_time TIMESTAMPTZ,
         date TEXT NOT NULL,
         status TEXT NOT NULL CHECK(status IN ('hadir', 'terlambat', 'izin', 'sakit', 'alpha')),
+        scanned_by TEXT,
+        scanner_name TEXT,
         notes TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        FOREIGN KEY (student_id) REFERENCES students(id)
+        FOREIGN KEY (student_id) REFERENCES students(id),
+        FOREIGN KEY (scanned_by) REFERENCES users(id)
       )
     `;
 
@@ -126,26 +132,20 @@ export async function seedDatabase() {
     const studentCount = studentResult.rows[0].count;
 
     if (Number(studentCount) === 0) {
-      console.log('Seeding database with students...');
+      console.log('Seeding database with students from Excel file...');
 
-      const students = [
-        { id: 'std001', nis: '2024001', name: 'Ahmad Rizki Pratama', class: 'K1', qrCode: 'STD001-2024001', active: 1, createdAt: '2024-01-15T08:00:00.000Z' },
-        { id: 'std002', nis: '2024002', name: 'Siti Nurhaliza', class: 'K1', qrCode: 'STD002-2024002', active: 1, createdAt: '2024-01-15T08:00:00.000Z' },
-        { id: 'std003', nis: '2024003', name: 'Budi Santoso', class: 'K2', qrCode: 'STD003-2024003', active: 1, createdAt: '2024-01-15T08:00:00.000Z' },
-        { id: 'std004', nis: '2024004', name: 'Dewi Lestari', class: 'K3', qrCode: 'STD004-2024004', active: 1, createdAt: '2024-01-15T08:00:00.000Z' },
-        { id: 'std005', nis: '2024005', name: 'Eko Prasetyo', class: 'K4', qrCode: 'STD005-2024005', active: 1, createdAt: '2024-01-15T08:00:00.000Z' },
-        { id: 'std006', nis: '2024006', name: 'Rina Kartika', class: 'K5', qrCode: 'STD006-2024006', active: 1, createdAt: '2024-01-15T08:00:00.000Z' },
-        { id: 'std007', nis: '2024007', name: 'Doni Prasetya', class: 'K6', qrCode: 'STD007-2024007', active: 1, createdAt: '2024-01-15T08:00:00.000Z' }
-      ];
+      // Import students data from parsed Excel file
+      const studentsModule = await import('./students-data.json', { assert: { type: 'json' } });
+      const studentsData = studentsModule.default;
 
-      for (const student of students) {
+      for (const student of studentsData) {
         await sql`
-          INSERT INTO students (id, nis, name, class, qr_code, active, created_at)
-          VALUES (${student.id}, ${student.nis}, ${student.name}, ${student.class}, ${student.qrCode}, ${student.active}, ${student.createdAt})
+          INSERT INTO students (id, nis, name, class, gender, date_of_birth, religion, qr_code, active, created_at)
+          VALUES (${student.id}, ${student.nis}, ${student.name}, ${student.class}, ${student.gender || null}, ${student.dateOfBirth || null}, ${student.religion || null}, ${student.qrCode}, ${student.active}, ${student.createdAt})
         `;
       }
 
-      console.log('Database seeded with', students.length, 'students');
+      console.log('Database seeded with', studentsData.length, 'students from Excel file');
     }
 
     // Seed users (teachers, staff, admin)
@@ -274,12 +274,15 @@ export async function seedDatabase() {
 }
 
 // Helper function to map database row to Student object
-export function mapRowToStudent(row: any): Student {
+function mapRowToStudent(row: any): Student {
   return {
     id: row.id,
     nis: row.nis,
     name: row.name,
     class: row.class,
+    gender: row.gender,
+    dateOfBirth: row.date_of_birth,
+    religion: row.religion,
     photo: row.photo,
     qrCode: row.qr_code,
     active: Boolean(row.active),
@@ -288,7 +291,7 @@ export function mapRowToStudent(row: any): Student {
 }
 
 // Helper function to map database row to AttendanceRecord object
-export function mapRowToAttendance(row: any): AttendanceRecord {
+function mapRowToAttendance(row: any): AttendanceRecord {
   return {
     id: row.id,
     studentId: row.student_id,
@@ -299,12 +302,14 @@ export function mapRowToAttendance(row: any): AttendanceRecord {
     checkOutTime: row.check_out_time,
     date: row.date,
     status: row.status,
+    scannedBy: row.scanned_by,
+    scannerName: row.scanner_name,
     notes: row.notes
   };
 }
 
 // Helper function to map database row to LeaveRequest object
-export function mapRowToLeaveRequest(row: any): LeaveRequest {
+function mapRowToLeaveRequest(row: any): LeaveRequest {
   return {
     id: row.id,
     studentId: row.student_id,
@@ -324,7 +329,7 @@ export function mapRowToLeaveRequest(row: any): LeaveRequest {
 }
 
 // Helper function to map database row to User object
-export function mapRowToUser(row: any): any {
+function mapRowToUser(row: any): any {
   return {
     id: row.id,
     nip: row.nip,
@@ -340,5 +345,6 @@ export function mapRowToUser(row: any): any {
   };
 }
 
-// Export sql client and hashPassword function for use in API endpoints
+// Export sql client, hashPassword function, and helper functions for use in API endpoints
 export { sql, hashPassword };
+export { mapRowToStudent, mapRowToAttendance, mapRowToLeaveRequest, mapRowToUser };
