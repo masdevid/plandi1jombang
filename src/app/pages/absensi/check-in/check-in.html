@@ -1,0 +1,152 @@
+<div class="min-h-screen bg-gradient-to-br from-primary-500 to-primary-900 flex items-center justify-center p-4">
+  <div class="w-full max-w-6xl">
+    <!-- Header -->
+    <div class="text-center text-white mb-8">
+      <h1 class="text-5xl font-display font-bold mb-4">Absensi SDN Plandi</h1>
+      <p class="text-2xl mb-2">{{ todayDate }}</p>
+      <p class="text-4xl font-mono font-bold">{{ currentTime }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Main Check-in Card -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+          <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Scan QR Code Siswa</h2>
+
+          <!-- QR Input -->
+          <div class="mb-8">
+            <div class="relative">
+              <input
+                type="text"
+                [(ngModel)]="qrCodeInput"
+                (keyup.enter)="processCheckIn()"
+                placeholder="Scan QR Code atau ketik kode manual"
+                class="w-full px-6 py-6 text-2xl border-4 border-primary-300 rounded-xl focus:ring-4 focus:ring-primary-500 focus:border-primary-500 transition-all text-center font-mono"
+                autofocus
+              >
+              <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
+                <svg class="w-12 h-12 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                </svg>
+              </div>
+            </div>
+            <button
+              (click)="processCheckIn()"
+              class="w-full mt-4 bg-primary-600 hover:bg-primary-700 text-white font-bold py-6 text-2xl rounded-xl transition-all shadow-lg hover:shadow-xl">
+              Check In
+            </button>
+          </div>
+
+          <!-- Message -->
+          @if (message) {
+            <div class="mb-6 p-6 rounded-xl text-center text-xl font-semibold"
+                 [ngClass]="{
+                   'bg-green-100 text-green-800 border-2 border-green-300': messageType === 'success',
+                   'bg-red-100 text-red-800 border-2 border-red-300': messageType === 'error'
+                 }">
+              {{ message }}
+            </div>
+          }
+
+          <!-- Last Check-in -->
+          @if (lastCheckIn) {
+            <div class="bg-green-50 border-2 border-green-200 rounded-xl p-6">
+              <h3 class="text-xl font-bold text-green-900 mb-4">Absensi Terakhir</h3>
+              <div class="grid grid-cols-2 gap-4 text-lg">
+                <div>
+                  <p class="text-gray-600">Nama:</p>
+                  <p class="font-bold text-gray-900">{{ lastCheckIn.studentName }}</p>
+                </div>
+                <div>
+                  <p class="text-gray-600">NIS:</p>
+                  <p class="font-bold text-gray-900">{{ lastCheckIn.studentNis }}</p>
+                </div>
+                <div>
+                  <p class="text-gray-600">Kelas:</p>
+                  <p class="font-bold text-gray-900">{{ lastCheckIn.studentClass }}</p>
+                </div>
+                <div>
+                  <p class="text-gray-600">Status:</p>
+                  <p class="font-bold uppercase"
+                     [ngClass]="{
+                       'text-green-600': lastCheckIn.status === 'hadir',
+                       'text-yellow-600': lastCheckIn.status === 'terlambat'
+                     }">
+                    {{ lastCheckIn.status }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Statistics Card -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 sticky top-4">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Statistik Hari Ini</h2>
+
+          @if (stats) {
+            <!-- Progress Circle -->
+            <div class="flex justify-center mb-8">
+              <div class="relative w-48 h-48">
+                <svg class="transform -rotate-90 w-48 h-48">
+                  <circle cx="96" cy="96" r="88" stroke="#e5e7eb" stroke-width="16" fill="none"/>
+                  <circle cx="96" cy="96" r="88" stroke="#0ea5e9" stroke-width="16" fill="none"
+                          [attr.stroke-dasharray]="(attendancePercentage / 100) * 553 + ' 553'"
+                          class="transition-all duration-1000"/>
+                </svg>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                  <div class="text-5xl font-bold text-primary-600">{{ attendancePercentage }}%</div>
+                  <div class="text-gray-600 font-semibold">Hadir</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="space-y-4">
+              <div class="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
+                <span class="font-semibold text-gray-700">Total Siswa</span>
+                <span class="text-2xl font-bold text-blue-600">{{ stats.totalStudents }}</span>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-green-50 rounded-lg">
+                <span class="font-semibold text-gray-700">Hadir</span>
+                <span class="text-2xl font-bold text-green-600">{{ stats.hadir }}</span>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-yellow-50 rounded-lg">
+                <span class="font-semibold text-gray-700">Terlambat</span>
+                <span class="text-2xl font-bold text-yellow-600">{{ stats.terlambat }}</span>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-purple-50 rounded-lg">
+                <span class="font-semibold text-gray-700">Izin</span>
+                <span class="text-2xl font-bold text-purple-600">{{ stats.izin }}</span>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-orange-50 rounded-lg">
+                <span class="font-semibold text-gray-700">Sakit</span>
+                <span class="text-2xl font-bold text-orange-600">{{ stats.sakit }}</span>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-red-50 rounded-lg">
+                <span class="font-semibold text-gray-700">Alpha</span>
+                <span class="text-2xl font-bold text-red-600">{{ stats.alpha }}</span>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                <span class="font-semibold text-gray-700">Belum Absen</span>
+                <span class="text-2xl font-bold text-gray-600">{{ stats.belumAbsen }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-6 flex justify-center gap-4">
+      <a routerLink="/absensi/laporan" class="bg-white hover:bg-gray-50 text-primary-600 font-bold py-4 px-8 rounded-xl transition-all shadow-lg hover:shadow-xl">
+        Lihat Laporan
+      </a>
+      <a routerLink="/absensi/siswa" class="bg-white hover:bg-gray-50 text-primary-600 font-bold py-4 px-8 rounded-xl transition-all shadow-lg hover:shadow-xl">
+        Data Siswa
+      </a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,52 @@
+{
+  "students": [
+    {
+      "id": "std001",
+      "nis": "2024001",
+      "name": "Ahmad Rizki Pratama",
+      "class": "1A",
+      "qrCode": "STD001-2024001",
+      "active": true,
+      "createdAt": "2024-01-15T08:00:00.000Z"
+    },
+    {
+      "id": "std002",
+      "nis": "2024002",
+      "name": "Siti Nurhaliza",
+      "class": "1A",
+      "qrCode": "STD002-2024002",
+      "active": true,
+      "createdAt": "2024-01-15T08:00:00.000Z"
+    },
+    {
+      "id": "std003",
+      "nis": "2024003",
+      "name": "Budi Santoso",
+      "class": "2A",
+      "qrCode": "STD003-2024003",
+      "active": true,
+      "createdAt": "2024-01-15T08:00:00.000Z"
+    },
+    {
+      "id": "std004",
+      "nis": "2024004",
+      "name": "Dewi Lestari",
+      "class": "2A",
+      "qrCode": "STD004-2024004",
+      "active": true,
+      "createdAt": "2024-01-15T08:00:00.000Z"
+    },
+    {
+      "id": "std005",
+      "nis": "2024005",
+      "name": "Eko Prasetyo",
+      "class": "3A",
+      "qrCode": "STD005-2024005",
+      "active": true,
+      "createdAt": "2024-01-15T08:00:00.000Z"
+    }
+  ],
+  "attendance": [],
+  "leaveRequests": [],
+  "lastUpdated": "2026-01-06T02:00:00.000Z"
+}
