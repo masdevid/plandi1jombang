@@ -1,6 +1,6 @@
 import { sql } from '@vercel/postgres';
-import { Student, AttendanceRecord, LeaveRequest } from './types';
-import * as crypto from 'crypto';
+import { Student, AttendanceRecord, LeaveRequest } from './types.js';
+import crypto from 'node:crypto';
 
 // Initialize database tables
 export async function initializeDatabase() {

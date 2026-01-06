@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { initializeDatabase, seedDatabase } from './lib/database';
+import { initializeDatabase, seedDatabase } from './lib/database.js';
 
 // This endpoint can be called once to initialize the database
 // Call it via: curl -X POST https://your-domain.vercel.app/api/db-init

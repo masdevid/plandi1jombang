@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql, mapRowToLeaveRequest } from './lib/database';
-import { LeaveRequest } from './lib/types';
+import { sql, mapRowToLeaveRequest } from './lib/database.js';
+import { LeaveRequest } from './lib/types.js';
 
 // Note: Database should be initialized via pnpm db:migrate before deploying
 // Removing auto-initialization to prevent timeout issues on Vercel

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { initializeDatabase, seedDatabase } from './lib/database';
+import { initializeDatabase, seedDatabase } from './lib/database.js';
 
 async function runMigration() {
   try {

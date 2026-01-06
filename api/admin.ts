@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql, mapRowToAttendance, mapRowToLeaveRequest, mapRowToStudent } from './lib/database';
+import { sql, mapRowToAttendance, mapRowToLeaveRequest, mapRowToStudent } from './lib/database.js';
 
 // Note: Database should be initialized via pnpm db:migrate before deploying
 // Removing auto-initialization to prevent timeout issues on Vercel
