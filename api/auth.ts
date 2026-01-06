@@ -143,7 +143,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       name: error instanceof Error ? error.name : 'Unknown',
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
-      POSTGRES_URL_EXISTS: !!process.env.POSTGRES_URL
+      POSTGRES_URL_EXISTS: !!process.env['POSTGRES_URL']
     });
     return res.status(500).json({
       error: 'Internal server error',

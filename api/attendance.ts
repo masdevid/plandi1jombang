@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql, mapRowToAttendance, mapRowToStudent } from './lib/database';
-import { AttendanceStats } from './lib/types';
+import { AttendanceStats, AttendanceRecord } from './lib/types';
 
 // Note: Database should be initialized via pnpm db:migrate before deploying
 // Removing auto-initialization to prevent timeout issues on Vercel
@@ -171,11 +171,11 @@ async function getAttendanceStats(date: string): Promise<AttendanceStats> {
 
   const stats: AttendanceStats = {
     totalStudents,
-    hadir: attendance.filter(a => a.status === 'hadir').length,
-    terlambat: attendance.filter(a => a.status === 'terlambat').length,
-    izin: attendance.filter(a => a.status === 'izin').length,
-    sakit: attendance.filter(a => a.status === 'sakit').length,
-    alpha: attendance.filter(a => a.status === 'alpha').length,
+    hadir: attendance.filter((a: AttendanceRecord) => a.status === 'hadir').length,
+    terlambat: attendance.filter((a: AttendanceRecord) => a.status === 'terlambat').length,
+    izin: attendance.filter((a: AttendanceRecord) => a.status === 'izin').length,
+    sakit: attendance.filter((a: AttendanceRecord) => a.status === 'sakit').length,
+    alpha: attendance.filter((a: AttendanceRecord) => a.status === 'alpha').length,
     belumAbsen: totalStudents - attendance.length
   };
 
