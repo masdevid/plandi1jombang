@@ -84,6 +84,7 @@ export class Dashboard implements OnInit {
 
       if (statsResponse.status === 401 || statsResponse.status === 403) {
         // Session expired or unauthorized
+        this.loading = false;
         await this.authService.logout();
         this.router.navigate(['/admin/login']);
         return;

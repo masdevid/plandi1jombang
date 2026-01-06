@@ -1,3 +1,7 @@
-<app-header></app-header>
+@if (showLayout) {
+  <app-header></app-header>
+}
 <router-outlet />
-<app-footer></app-footer>
+@if (showLayout) {
+  <app-footer></app-footer>
+}
