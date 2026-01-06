@@ -17,8 +17,8 @@
               <p class="text-xs text-gray-600">
                 @if (user.role === 'admin') {
                   Administrator
-                } @else if (user.isWaliKelas && user?.assignedClass) {
-                  Wali Kelas {{ getClassDisplayName(user?.assignedClass) }}
+                } @else if (user.isWaliKelas && user.assignedClass) {
+                  Wali Kelas {{ getClassDisplayName(user.assignedClass) }}
                 } @else {
                   {{ user.role }}
                 }
@@ -37,6 +37,23 @@
 
   <!-- Main Content -->
   <main class="container mx-auto px-4 py-8">
+    <!-- Error Message -->
+    @if (errorMessage) {
+      <div class="mb-6 p-4 bg-red-100 border-2 border-red-300 rounded-lg">
+        <div class="flex items-center space-x-3">
+          <svg class="w-6 h-6 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <p class="text-red-800 font-semibold">{{ errorMessage }}</p>
+          <button (click)="errorMessage = ''" class="ml-auto text-red-600 hover:text-red-800">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    }
+
     @if (loading) {
       <div class="flex items-center justify-center py-20">
         <div class="text-center">

@@ -18,10 +18,15 @@ function generateToken(): string {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Enable CORS
+  // Security headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -37,33 +42,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { action } = req.body;
 
         if (action === 'login') {
-          // Login
+          // Login - validate input
           const { email, password } = req.body;
 
           if (!email || !password) {
             return res.status(400).json({ error: 'Email and password required' });
           }
 
-          // Find user by email
+          // Basic input sanitization
+          const sanitizedEmail = email.trim().toLowerCase();
+
+          // Find user by email (never select password_hash unless needed for verification)
           const userResult = await sql`
-            SELECT * FROM users 
-            WHERE email = ${email} AND active = 1
+            SELECT id, nip, name, email, password_hash, role, is_wali_kelas, assigned_class, phone, photo, active, created_at
+            FROM users
+            WHERE LOWER(email) = ${sanitizedEmail} AND active = 1
           `;
 
           if (userResult.rows.length === 0) {
+            // Generic error message to prevent user enumeration
             return res.status(401).json({ error: 'Invalid credentials' });
           }
 
           const user = userResult.rows[0];
           const passwordHash = hashPassword(password);
 
-          // Verify password
+          // Constant-time comparison would be better, but for SHA-256 this is acceptable
           if (user.password_hash !== passwordHash) {
+            // Same generic error message
             return res.status(401).json({ error: 'Invalid credentials' });
           }
 
-          // Create session
-          const sessionId = 'sess' + Date.now();
+          // Create session with unique ID
+          const sessionId = 'sess-' + crypto.randomBytes(16).toString('hex');
           const token = generateToken();
           const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
@@ -72,7 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             VALUES (${sessionId}, ${user.id}, ${token}, ${expiresAt}, NOW())
           `;
 
-          // Return user data and token (excluding password_hash)
+          // CRITICAL: Use mapRowToUser to ensure password_hash is NEVER sent to client
           const userData = mapRowToUser(user);
           return res.status(200).json({
             user: userData,

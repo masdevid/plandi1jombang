@@ -52,6 +52,7 @@ export class Dashboard implements OnInit {
   recentAttendance: AttendanceRecord[] = [];
   pendingLeaveRequests: LeaveRequest[] = [];
   loading = true;
+  errorMessage = '';
   today = new Date().toISOString().split('T')[0];
 
   constructor(
@@ -71,6 +72,8 @@ export class Dashboard implements OnInit {
 
   async loadDashboardData() {
     this.loading = true;
+    this.errorMessage = '';
+
     try {
       const headers = this.authService.getAuthHeaders();
 
@@ -78,14 +81,25 @@ export class Dashboard implements OnInit {
       const statsResponse = await fetch(`/api/admin?resource=dashboard`, {
         headers
       });
+
+      if (statsResponse.status === 401 || statsResponse.status === 403) {
+        // Session expired or unauthorized
+        await this.authService.logout();
+        this.router.navigate(['/admin/login']);
+        return;
+      }
+
       if (statsResponse.ok) {
         this.stats = await statsResponse.json();
+      } else {
+        this.errorMessage = 'Gagal memuat statistik dashboard';
       }
 
       // Load recent attendance
       const attendanceResponse = await fetch(`/api/admin?resource=attendance&date=${this.today}`, {
         headers
       });
+
       if (attendanceResponse.ok) {
         const allAttendance = await attendanceResponse.json();
         this.recentAttendance = allAttendance.slice(0, 10);
@@ -95,11 +109,13 @@ export class Dashboard implements OnInit {
       const leaveResponse = await fetch(`/api/admin?resource=leave-requests&status=pending`, {
         headers
       });
+
       if (leaveResponse.ok) {
         this.pendingLeaveRequests = await leaveResponse.json();
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+      this.errorMessage = 'Koneksi ke server gagal, periksa internet Anda';
     } finally {
       this.loading = false;
     }
@@ -141,11 +157,23 @@ export class Dashboard implements OnInit {
         body: JSON.stringify({ id, status: 'approved' })
       });
 
+      if (response.status === 401 || response.status === 403) {
+        await this.authService.logout();
+        this.router.navigate(['/admin/login']);
+        return;
+      }
+
       if (response.ok) {
         await this.loadDashboardData();
+        alert('Pengajuan izin telah disetujui');
+      } else if (response.status === 403) {
+        alert('Anda tidak memiliki akses untuk menyetujui pengajuan ini');
+      } else {
+        alert('Gagal menyetujui pengajuan izin');
       }
     } catch (error) {
       console.error('Error approving leave request:', error);
+      alert('Koneksi ke server gagal');
     }
   }
 
@@ -165,11 +193,23 @@ export class Dashboard implements OnInit {
         body: JSON.stringify({ id, status: 'rejected' })
       });
 
+      if (response.status === 401 || response.status === 403) {
+        await this.authService.logout();
+        this.router.navigate(['/admin/login']);
+        return;
+      }
+
       if (response.ok) {
         await this.loadDashboardData();
+        alert('Pengajuan izin telah ditolak');
+      } else if (response.status === 403) {
+        alert('Anda tidak memiliki akses untuk menolak pengajuan ini');
+      } else {
+        alert('Gagal menolak pengajuan izin');
       }
     } catch (error) {
       console.error('Error rejecting leave request:', error);
+      alert('Koneksi ke server gagal');
     }
   }
 }

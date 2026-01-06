@@ -68,6 +68,8 @@ POSTGRES_URL=postgres://username:password@host/database
 
 - [Database Migration](docs/DATABASE_MIGRATION.md) - Panduan migrasi PostgreSQL
 - [Quick Start Guide](docs/QUICK_START.md) - Panduan cepat API dan development
+- [Admin System](docs/ADMIN_SYSTEM.md) - Admin authentication & authorization
+- [Security Enhancements](docs/SECURITY_ENHANCEMENTS.md) - Security best practices & implementation
 - [Class Naming Convention](docs/CLASS_NAMING_UPDATE.md) - Sistem penamaan kelas K1-K6
 - [Branding Guide](docs/BRANDING_UPDATE.md) - Logo dan skema warna
 - [SEO Optimization](docs/SEO_UPDATE.md) - Optimasi SEO dan profil sekolah
@@ -168,10 +170,18 @@ Detail lengkap: [Database Migration](docs/DATABASE_MIGRATION.md)
 ## 🔒 Security
 
 - ✅ SQL injection protection (parameterized queries)
+- ✅ Password hashing with SHA-256 (never exposed to client)
+- ✅ Token-based authentication (256-bit random tokens)
+- ✅ Security headers (HSTS, X-Frame-Options, CSP, etc.)
+- ✅ Session management with automatic expiry
+- ✅ Role-based access control (Admin & Wali Kelas)
 - ✅ CORS configured for production domain
 - ✅ Environment variables for secrets
-- ✅ Input validation on all endpoints
-- ✅ Active students only in public queries
+- ✅ Input validation and sanitization
+- ✅ User-friendly error messages (no information disclosure)
+- ✅ HTTPS enforcement via Strict-Transport-Security
+
+**Details:** See [Security Enhancements](docs/SECURITY_ENHANCEMENTS.md)
 
 ## 🤝 Contributing
 

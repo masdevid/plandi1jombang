@@ -97,13 +97,34 @@ export class AuthService {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        return { success: false, error: error.error || 'Login failed' };
+        let errorMessage = 'Login gagal';
+
+        try {
+          const errorData = await response.json();
+          if (response.status === 401) {
+            errorMessage = 'Email atau password salah';
+          } else if (response.status === 403) {
+            errorMessage = 'Akun tidak memiliki akses';
+          } else if (response.status >= 500) {
+            errorMessage = 'Server sedang bermasalah, coba lagi nanti';
+          } else {
+            errorMessage = errorData.error || errorMessage;
+          }
+        } catch {
+          // If JSON parsing fails, use status-based message
+          if (response.status === 401) {
+            errorMessage = 'Email atau password salah';
+          } else if (response.status >= 500) {
+            errorMessage = 'Server sedang bermasalah, coba lagi nanti';
+          }
+        }
+
+        return { success: false, error: errorMessage };
       }
 
       const data: AuthResponse = await response.json();
 
-      // Store user and token
+      // Store user and token (never store password)
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('currentUser', JSON.stringify(data.user));
         localStorage.setItem('authToken', data.token);
@@ -114,7 +135,7 @@ export class AuthService {
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, error: 'Network error' };
+      return { success: false, error: 'Koneksi ke server gagal, periksa internet Anda' };
     }
   }
 
