@@ -68,10 +68,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const sessionId = 'sess-' + crypto.randomBytes(16).toString('hex');
           const token = generateToken();
           const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+          const expiresAtISO = expiresAt.toISOString();
 
           await sql`
             INSERT INTO sessions (id, user_id, token, expires_at, created_at)
-            VALUES (${sessionId}, ${user.id}, ${token}, ${expiresAt}, NOW())
+            VALUES (${sessionId}, ${user.id}, ${token}, ${expiresAtISO}, NOW())
           `;
 
           // CRITICAL: Use mapRowToUser to ensure password_hash is NEVER sent to client
@@ -79,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(200).json({
             user: userData,
             token,
-            expiresAt
+            expiresAt: expiresAtISO
           });
         }
 
@@ -138,6 +139,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (error) {
     console.error('Auth API Error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      POSTGRES_URL_EXISTS: !!process.env.POSTGRES_URL
+    });
+    return res.status(500).json({
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : String(error)
+    });
   }
 }
