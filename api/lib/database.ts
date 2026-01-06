@@ -1,5 +1,5 @@
 import { sql } from './db-config.js';
-import { Student, AttendanceRecord, LeaveRequest } from './types.js';
+import { Student, AttendanceRecord, LeaveRequest, IntrakurikulerSubject, IntrakurikulerAssignment, ExtrakurikulerActivity, ExtrakurikulerAssignment } from './types.js';
 import crypto from 'node:crypto';
 
 // Initialize database tables
@@ -99,6 +99,70 @@ export async function initializeDatabase() {
       )
     `;
 
+    // Intrakurikuler subjects table
+    await sql`
+      CREATE TABLE IF NOT EXISTS intrakurikuler_subjects (
+        id TEXT PRIMARY KEY,
+        kode_mapel TEXT UNIQUE NOT NULL,
+        nama_mapel TEXT NOT NULL,
+        kelompok TEXT,
+        deskripsi TEXT,
+        aktif INTEGER NOT NULL DEFAULT 1,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `;
+
+    // Intrakurikuler class assignments table
+    await sql`
+      CREATE TABLE IF NOT EXISTS intrakurikuler_class_assignments (
+        id TEXT PRIMARY KEY,
+        subject_id TEXT NOT NULL,
+        class_name TEXT NOT NULL,
+        teacher_id TEXT,
+        teacher_name TEXT,
+        jam_mulai TEXT,
+        jam_selesai TEXT,
+        hari TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        FOREIGN KEY (subject_id) REFERENCES intrakurikuler_subjects(id),
+        FOREIGN KEY (teacher_id) REFERENCES users(id)
+      )
+    `;
+
+    // Extrakurikuler activities table
+    await sql`
+      CREATE TABLE IF NOT EXISTS extrakurikuler_activities (
+        id TEXT PRIMARY KEY,
+        kode_ekskul TEXT UNIQUE NOT NULL,
+        nama_ekskul TEXT NOT NULL,
+        deskripsi TEXT,
+        pembina TEXT,
+        aktif INTEGER NOT NULL DEFAULT 1,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `;
+
+    // Extrakurikuler members table
+    await sql`
+      CREATE TABLE IF NOT EXISTS extrakurikuler_members (
+        id TEXT PRIMARY KEY,
+        activity_id TEXT NOT NULL,
+        student_id TEXT NOT NULL,
+        student_name TEXT NOT NULL,
+        student_nis TEXT NOT NULL,
+        student_class TEXT NOT NULL,
+        joined_at TIMESTAMPTZ NOT NULL,
+        status TEXT NOT NULL CHECK(status IN ('aktif', 'non-aktif', 'keluar')),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        FOREIGN KEY (activity_id) REFERENCES extrakurikuler_activities(id) ON DELETE CASCADE,
+        FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+      )
+    `;
+
     // Create indexes for better query performance
     await sql`CREATE INDEX IF NOT EXISTS idx_attendance_date ON attendance(date)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_attendance_student ON attendance(student_id)`;
@@ -112,6 +176,14 @@ export async function initializeDatabase() {
     await sql`CREATE INDEX IF NOT EXISTS idx_users_nip ON users(nip)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_intrakurikuler_subjects_kode ON intrakurikuler_subjects(kode_mapel)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_intrakurikuler_assignments_class ON intrakurikuler_class_assignments(class_name)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_intrakurikuler_assignments_subject ON intrakurikuler_class_assignments(subject_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_intrakurikuler_assignments_teacher ON intrakurikuler_class_assignments(teacher_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_extrakurikuler_activities_kode ON extrakurikuler_activities(kode_ekskul)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_extrakurikuler_members_activity ON extrakurikuler_members(activity_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_extrakurikuler_members_student ON extrakurikuler_members(student_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_extrakurikuler_members_class ON extrakurikuler_members(student_class)`;
 
     console.log('Database initialized successfully');
   } catch (error) {
@@ -267,6 +339,62 @@ export async function seedDatabase() {
 
       console.log('Database seeded with', users.length, 'users');
     }
+
+    // Seed intrakurikuler subjects
+    const subjectResult = await sql`SELECT COUNT(*) as count FROM intrakurikuler_subjects`;
+    const subjectCount = subjectResult.rows[0].count;
+
+    if (Number(subjectCount) === 0) {
+      console.log('Seeding database with intrakurikuler subjects...');
+
+      const subjects = [
+        { id: 'map001', kodeMapel: 'PAI', namaMapel: 'Pendidikan Agama dan Budi Pekerti', kelompok: 'A', deskripsi: 'Mata pelajaran agama dan budi pekerti' },
+        { id: 'map002', kodeMapel: 'PPKN', namaMapel: 'Pendidikan Pancasila', kelompok: 'A', deskripsi: 'Mata pelajaran pendidikan Pancasila dan kewarganegaraan' },
+        { id: 'map003', kodeMapel: 'BIND', namaMapel: 'Bahasa Indonesia', kelompok: 'A', deskripsi: 'Mata pelajaran Bahasa Indonesia' },
+        { id: 'map004', kodeMapel: 'MTK', namaMapel: 'Matematika', kelompok: 'A', deskripsi: 'Mata pelajaran Matematika' },
+        { id: 'map005', kodeMapel: 'IPA', namaMapel: 'Ilmu Pengetahuan Alam', kelompok: 'A', deskripsi: 'Mata pelajaran Ilmu Pengetahuan Alam' },
+        { id: 'map006', kodeMapel: 'IPS', namaMapel: 'Ilmu Pengetahuan Sosial', kelompok: 'A', deskripsi: 'Mata pelajaran Ilmu Pengetahuan Sosial' },
+        { id: 'map007', kodeMapel: 'PJOK', namaMapel: 'Pendidikan Jasmani, Olahraga, dan Kesehatan', kelompok: 'B', deskripsi: 'Mata pelajaran pendidikan jasmani dan olahraga' },
+        { id: 'map008', kodeMapel: 'SRP', namaMapel: 'Seni Rupa', kelompok: 'B', deskripsi: 'Mata pelajaran seni rupa dan budaya' },
+        { id: 'map009', kodeMapel: 'BING', namaMapel: 'Bahasa Inggris', kelompok: 'A', deskripsi: 'Mata pelajaran Bahasa Inggris' },
+        { id: 'map010', kodeMapel: 'JAWA', namaMapel: 'Bahasa Jawa', kelompok: 'B', deskripsi: 'Mata pelajaran Bahasa Jawa' },
+        { id: 'map011', kodeMapel: 'MULOK_AGAMA', namaMapel: 'Mulok Keagamaan', kelompok: 'C', deskripsi: 'Mata pelajaran muatan lokal keagamaan' },
+        { id: 'map012', kodeMapel: 'DINIYAH', namaMapel: 'Pendidikan Diniyah', kelompok: 'C', deskripsi: 'Mata pelajaran Pendidikan Diniyah' }
+      ];
+
+      for (const subject of subjects) {
+        await sql`
+          INSERT INTO intrakurikuler_subjects (id, kode_mapel, nama_mapel, kelompok, deskripsi, aktif, created_at)
+          VALUES (${subject.id}, ${subject.kodeMapel}, ${subject.namaMapel}, ${subject.kelompok}, ${subject.deskripsi}, 1, NOW())
+        `;
+      }
+
+      console.log('Database seeded with', subjects.length, 'intrakurikuler subjects');
+    }
+
+    // Seed extrakurikuler activities
+    const ekskulResult = await sql`SELECT COUNT(*) as count FROM extrakurikuler_activities`;
+    const ekskulCount = ekskulResult.rows[0].count;
+
+    if (Number(ekskulCount) === 0) {
+      console.log('Seeding database with extrakurikuler activities...');
+
+      const activities = [
+        { id: 'eks001', kodeEkskul: 'PRAMUKA', namaEkskul: 'Pramuka', deskripsi: 'Kegiatan kepramukaan untuk pembentuk karakter', pembina: 'Pembina Pramuka' },
+        { id: 'eks002', kodeEkskul: 'TARI', namaEkskul: 'Tari', deskripsi: 'Kegiatan seni tari tradisional dan modern', pembina: 'Pembina Tari' },
+        { id: 'eks003', kodeEkskul: 'BANJARI', namaEkskul: 'Banjari', deskripsi: 'Kegiatan seni musik banjari', pembina: 'Pembina Banjari' },
+        { id: 'eks004', kodeEkskul: 'VOLLY', namaEkskul: 'Volly', deskripsi: 'Kegiatan olahraga voli', pembina: 'Pembina Volly' }
+      ];
+
+      for (const activity of activities) {
+        await sql`
+          INSERT INTO extrakurikuler_activities (id, kode_ekskul, nama_ekskul, deskripsi, pembina, aktif, created_at)
+          VALUES (${activity.id}, ${activity.kodeEkskul}, ${activity.namaEkskul}, ${activity.deskripsi}, ${activity.pembina}, 1, NOW())
+        `;
+      }
+
+      console.log('Database seeded with', activities.length, 'extrakurikuler activities');
+    }
   } catch (error) {
     console.error('Error seeding database:', error);
     throw error;
@@ -345,6 +473,76 @@ function mapRowToUser(row: any): any {
   };
 }
 
+// Helper function to map database row to IntrakurikulerSubject object
+function mapRowToIntrakurikulerSubject(row: any): IntrakurikulerSubject {
+  return {
+    id: row.id,
+    kodeMapel: row.kode_mapel,
+    namaMapel: row.nama_mapel,
+    kelompok: row.kelompok,
+    deskripsi: row.deskripsi,
+    aktif: Boolean(row.aktif),
+    createdAt: row.created_at
+  };
+}
+
+// Helper function to map database row to IntrakurikulerAssignment object
+function mapRowToIntrakurikulerAssignment(row: any): IntrakurikulerAssignment {
+  return {
+    id: row.id,
+    subject: {
+      id: row.subject_id,
+      kodeMapel: row.kode_mapel,
+      namaMapel: row.nama_mapel,
+      kelompok: row.kelompok,
+      deskripsi: row.deskripsi,
+      aktif: Boolean(row.aktif),
+      createdAt: row.created_at
+    },
+    className: row.class_name,
+    teacherId: row.teacher_id,
+    teacherName: row.teacher_name,
+    jamMulai: row.jam_mulai,
+    jamSelesai: row.jam_selesai,
+    hari: row.hari
+  };
+}
+
+// Helper function to map database row to ExtrakurikulerActivity object
+function mapRowToExtrakurikulerActivity(row: any): ExtrakurikulerActivity {
+  return {
+    id: row.id,
+    kodeEkskul: row.kode_ekskul,
+    namaEkskul: row.nama_ekskul,
+    deskripsi: row.deskripsi,
+    pembina: row.pembina,
+    aktif: Boolean(row.aktif),
+    createdAt: row.created_at
+  };
+}
+
+// Helper function to map database row to ExtrakurikulerAssignment object
+function mapRowToExtrakurikulerAssignment(row: any): ExtrakurikulerAssignment {
+  return {
+    id: row.id,
+    activity: {
+      id: row.id,
+      kodeEkskul: row.kode_ekskul,
+      namaEkskul: row.nama_ekskul,
+      deskripsi: row.deskripsi,
+      pembina: row.pembina,
+      aktif: Boolean(row.activity_aktif || row.aktif),
+      createdAt: row.activity_created_at || row.created_at
+    },
+    studentId: row.student_id,
+    studentName: row.student_name,
+    studentNis: row.student_nis,
+    studentClass: row.student_class,
+    joinedAt: row.joined_at,
+    status: row.status
+  };
+}
+
 // Export sql client, hashPassword function, and helper functions for use in API endpoints
 export { sql, hashPassword };
-export { mapRowToStudent, mapRowToAttendance, mapRowToLeaveRequest, mapRowToUser };
+export { mapRowToStudent, mapRowToAttendance, mapRowToLeaveRequest, mapRowToUser, mapRowToIntrakurikulerSubject, mapRowToIntrakurikulerAssignment, mapRowToExtrakurikulerActivity, mapRowToExtrakurikulerAssignment };

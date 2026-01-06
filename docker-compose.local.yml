@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: sd-plandi-db
+    environment:
+      POSTGRES_DB: sd_plandi
+      POSTGRES_USER: sd_plandi_user
+      POSTGRES_PASSWORD: sd_plandi_local_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sd_plandi_user -d sd_plandi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sd-plandi-network
+
+  # API Server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: sd-plandi-api
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://sd_plandi_user:sd_plandi_local_pass@db:5432/sd_plandi
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./api:/app/api:ro
+      - ./api-server:/app/api-server:ro
+      - api_node_modules:/app/node_modules
+    networks:
+      - sd-plandi-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  api_node_modules:
+    driver: local
+
+networks:
+  sd-plandi-network:
+    driver: bridge

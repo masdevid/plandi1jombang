@@ -15,7 +15,16 @@
     "docker:run": "docker-compose -f docker-compose.production.yml up -d",
     "docker:stop": "docker-compose -f docker-compose.production.yml down",
     "docker:logs": "docker-compose -f docker-compose.production.yml logs -f",
-    "docker:init": "docker-compose -f docker-compose.production.yml exec app node -e \"import('./api/db-init.js').then(m => m.default({method:'POST'}, {status:(c)=>({json:(d)=>console.log(d)}), setHeader:()=>{}}))\""
+    "docker:init": "docker-compose -f docker-compose.production.yml exec app node -e \"import('./api/db-init.js').then(m => m.default({method:'POST'}, {status:(c)=>({json:(d)=>console.log(d)}), setHeader:()=>{}}))\"",
+    "local:up": "docker-compose -f docker-compose.local.yml up -d",
+    "local:down": "docker-compose -f docker-compose.local.yml down",
+    "local:logs": "docker-compose -f docker-compose.local.yml logs -f",
+    "local:restart": "docker-compose -f docker-compose.local.yml restart api",
+    "local:init": "curl -X POST http://localhost:3001/db-init",
+    "local:migrate": "curl -X POST http://localhost:3001/db-migrate-columns",
+    "local:seed": "curl -X POST 'http://localhost:3001/db-init?force=true'",
+    "dev": "pnpm local:up && pnpm start",
+    "api:install": "cd api-server && npm install"
   },
   "prettier": {
     "printWidth": 100,

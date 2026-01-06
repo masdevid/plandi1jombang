@@ -53,3 +53,45 @@ export interface AttendanceStats {
   alpha: number;
   belumAbsen: number;
 }
+
+export interface IntrakurikulerSubject {
+  id: string;
+  kodeMapel: string;
+  namaMapel: string;
+  kelompok?: string;
+  deskripsi?: string;
+  aktif: boolean;
+  createdAt: string;
+}
+
+export interface IntrakurikulerAssignment {
+  id: string;
+  subject: IntrakurikulerSubject;
+  className: string;
+  teacherId?: string;
+  teacherName?: string;
+  jamMulai?: string;
+  jamSelesai?: string;
+  hari: string;
+}
+
+export interface ExtrakurikulerActivity {
+  id: string;
+  kodeEkskul: string;
+  namaEkskul: string;
+  deskripsi?: string;
+  pembina?: string;
+  aktif: boolean;
+  createdAt: string;
+}
+
+export interface ExtrakurikulerAssignment {
+  id: string;
+  activity: ExtrakurikulerActivity;
+  studentId: string;
+  studentName: string;
+  studentNis: string;
+  studentClass: string;
+  joinedAt: string;
+  status: 'aktif' | 'non-aktif' | 'keluar';
+}

@@ -1,0 +1,16 @@
+{
+  "name": "sd-plandi-api-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Local API server for SD Plandi 1 Jombang",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "postgres": "^3.4.3"
+  }
+}
