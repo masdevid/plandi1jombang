@@ -6,12 +6,15 @@ RUN apk add --no-cache python3 make g++
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY api-server/package.json ./
-COPY package.json ./root-package.json
+# Copy API server package files
+COPY api-server/package*.json ./api-server/
 
-# Install dependencies
+# Install API dependencies
+WORKDIR /app/api-server
 RUN npm install
+
+# Back to app root
+WORKDIR /app
 
 # Copy API files
 COPY api ./api
