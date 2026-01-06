@@ -108,6 +108,8 @@ export class AuthService {
             errorMessage = 'Email atau password salah';
           } else if (response.status === 403) {
             errorMessage = 'Akun tidak memiliki akses';
+          } else if (response.status === 404) {
+            errorMessage = 'Endpoint tidak ditemukan, periksa konfigurasi server';
           } else if (response.status >= 500) {
             errorMessage = 'Server sedang bermasalah, coba lagi nanti';
           } else {
@@ -117,6 +119,8 @@ export class AuthService {
           // If JSON parsing fails, use status-based message
           if (response.status === 401) {
             errorMessage = 'Email atau password salah';
+          } else if (response.status === 404) {
+            errorMessage = 'Endpoint tidak ditemukan, periksa konfigurasi server';
           } else if (response.status >= 500) {
             errorMessage = 'Server sedang bermasalah, coba lagi nanti';
           }
