@@ -1,15 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql, mapRowToAttendance, mapRowToLeaveRequest, mapRowToStudent } from './lib/database';
 
-// Initialize database
-let initialized = false;
-async function ensureInitialized() {
-  if (!initialized) {
-    const { initializeDatabase } = await import('./lib/database');
-    await initializeDatabase();
-    initialized = true;
-  }
-}
+// Note: Database should be initialized via pnpm db:migrate before deploying
+// Removing auto-initialization to prevent timeout issues on Vercel
 
 // Verify admin or wali kelas authorization
 async function verifyAuth(req: VercelRequest): Promise<{ user: any; authorized: boolean }> {
@@ -59,8 +52,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { resource, action } = req.query;
 
   try {
-    await ensureInitialized();
-
     // Verify authentication
     const { user, authorized } = await verifyAuth(req);
     if (!authorized) {

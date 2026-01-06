@@ -1,6 +1,6 @@
 {
   "/api/*": {
-    "target": "https://sd-plandi.vercel.app",
+    "target": "https://plandi1jombang.vercel.app/",
     "secure": true,
     "changeOrigin": true,
     "logLevel": "debug"

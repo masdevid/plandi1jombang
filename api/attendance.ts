@@ -1,16 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql, initializeDatabase, seedDatabase, mapRowToAttendance, mapRowToStudent } from './lib/database';
+import { sql, mapRowToAttendance, mapRowToStudent } from './lib/database';
 import { AttendanceStats } from './lib/types';
 
-// Initialize database on cold start
-let initialized = false;
-async function ensureInitialized() {
-  if (!initialized) {
-    await initializeDatabase();
-    await seedDatabase();
-    initialized = true;
-  }
-}
+// Note: Database should be initialized via pnpm db:migrate before deploying
+// Removing auto-initialization to prevent timeout issues on Vercel
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
@@ -23,8 +16,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    await ensureInitialized();
-
     const { method } = req;
     const { date, studentId, className, action } = req.query;
 

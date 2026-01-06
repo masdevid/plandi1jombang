@@ -2,15 +2,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql, hashPassword, mapRowToUser } from './lib/database';
 import * as crypto from 'crypto';
 
-// Initialize database
-let initialized = false;
-async function ensureInitialized() {
-  if (!initialized) {
-    const { initializeDatabase } = await import('./lib/database');
-    await initializeDatabase();
-    initialized = true;
-  }
-}
+// Note: Database should be initialized via pnpm db:migrate before deploying
+// Removing auto-initialization to prevent timeout issues on Vercel
 
 // Generate session token
 function generateToken(): string {
@@ -35,8 +28,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { method } = req;
 
   try {
-    await ensureInitialized();
-
     switch (method) {
       case 'POST': {
         const { action } = req.body;
