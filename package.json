@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:production": "pnpm db:migrate && pnpm build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "db:migrate": "tsx api/migrate.ts",

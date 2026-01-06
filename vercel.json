@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm build",
+  "buildCommand": "pnpm db:migrate && pnpm build",
   "outputDirectory": "dist/sd-plandi/browser",
   "devCommand": "pnpm start",
   "installCommand": "pnpm install",
