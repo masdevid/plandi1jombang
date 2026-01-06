@@ -26,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       WHERE table_schema = 'public'
       ORDER BY table_name
     `;
-    health.database.tables = tablesResult.rows.map(row => row.table_name);
+    health.database.tables = tablesResult.rows.map((row: any) => row.table_name);
 
     return res.status(200).json(health);
   } catch (error) {
