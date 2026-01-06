@@ -39,6 +39,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/admin/login/login').then(m => m.Login)
   },
   {
+    path: 'login',
+    redirectTo: 'admin/login',
+    pathMatch: 'full'
+  },
+  {
     path: 'admin/dashboard',
     loadComponent: () => import('./pages/admin/dashboard/dashboard').then(m => m.Dashboard),
     canActivate: [authGuard]

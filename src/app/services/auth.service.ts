@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface User {
   id: string;
@@ -27,7 +28,7 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  private apiUrl = '/api';
+  private apiUrl = environment.apiUrl;
 
   constructor() {
     // Check if token is expired on initialization
@@ -90,6 +91,8 @@ export class AuthService {
 
   async login(email: string, password: string): Promise<{ success: boolean; error?: string }> {
     try {
+      // IMPORTANT: Password is sent securely in request body (HTTPS encrypts it)
+      // It will appear in dev tools but this is normal and unavoidable for authentication
       const response = await fetch(`${this.apiUrl}/auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

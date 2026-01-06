@@ -1,4 +1,5 @@
+// Production environment configuration
 export const environment = {
   production: true,
-  apiUrl: '/api'
+  apiUrl: '/api' // Same origin in production (Vercel)
 };

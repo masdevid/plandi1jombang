@@ -70,6 +70,7 @@ POSTGRES_URL=postgres://username:password@host/database
 - [Quick Start Guide](docs/QUICK_START.md) - Panduan cepat API dan development
 - [Admin System](docs/ADMIN_SYSTEM.md) - Admin authentication & authorization
 - [Security Enhancements](docs/SECURITY_ENHANCEMENTS.md) - Security best practices & implementation
+- [Docker Deployment](docs/DOCKER_DEPLOYMENT.md) - Docker containerization & deployment
 - [Class Naming Convention](docs/CLASS_NAMING_UPDATE.md) - Sistem penamaan kelas K1-K6
 - [Branding Guide](docs/BRANDING_UPDATE.md) - Logo dan skema warna
 - [SEO Optimization](docs/SEO_UPDATE.md) - Optimasi SEO dan profil sekolah
@@ -143,7 +144,7 @@ Detail lengkap: [Quick Start Guide](docs/QUICK_START.md)
 
 ## 🚀 Deployment
 
-### Vercel
+### Option 1: Vercel (Recommended for Quick Deploy)
 
 \`\`\`bash
 # Install Vercel CLI
@@ -153,11 +154,30 @@ pnpm add -g vercel
 vercel --prod
 \`\`\`
 
-### Environment Variables (Vercel)
-
+**Environment Variables:**
 1. Buka project di Vercel Dashboard
 2. Settings → Environment Variables
 3. Tambahkan \`POSTGRES_URL\` dari Neon
+
+### Option 2: Docker (Self-Hosted)
+
+\`\`\`bash
+# Build and run with Docker Compose
+pnpm docker:build
+pnpm docker:run
+
+# OR manually
+docker build -t sd-plandi:latest .
+docker-compose up -d
+
+# Access at http://localhost:3000
+\`\`\`
+
+**Requires:**
+- Docker 20.10+
+- `.env` file with `POSTGRES_URL`
+
+**Details:** See [Docker Deployment Guide](docs/DOCKER_DEPLOYMENT.md)
 
 ## 📊 Database Schema
 

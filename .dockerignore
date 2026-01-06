@@ -1,0 +1,37 @@
+# Dependencies
+node_modules
+npm-debug.log
+pnpm-debug.log
+yarn-error.log
+
+# Build output
+dist
+.angular
+
+# Development files
+.vscode
+.idea
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+
+# Documentation (optional - remove if you want docs in container)
+docs
+*.md
+!README.md
+
+# Test files
+*.spec.ts
+*.test.ts
+e2e
+
+# OS files
+.DS_Store
+Thumbs.db
