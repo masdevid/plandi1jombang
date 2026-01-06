@@ -20,6 +20,10 @@
     "db:init": "curl -X POST http://localhost:3001/db-init",
     "db:migrate:columns": "curl -X POST http://localhost:3001/db-migrate-columns",
     "db:seed": "curl -X POST 'http://localhost:3001/db-init?force=true'",
+    "test:api": "node tests/test-api.js",
+    "test:api:sh": "bash tests/test-api.sh",
+    "test:quick": "bash tests/quick-test.sh",
+    "setup": "bash start-and-test.sh",
     "dev": "pnpm docker:up && pnpm start",
     "api:install": "cd api-server && npm install"
   },
