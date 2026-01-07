@@ -1,1 +1,196 @@
-/* Additional styles if needed */
+.login-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #c2410c 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-wrapper {
+  width: 100%;
+  max-width: 480px;
+}
+
+.login-card {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Header */
+.login-header {
+  margin-bottom: 24px;
+  padding-bottom: 0;
+}
+
+.header-content {
+  width: 100%;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  margin: 0 auto 16px;
+  display: block;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Form */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.submit-button {
+  height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.button-spinner {
+  margin-right: 8px;
+  display: inline-block;
+}
+
+.button-spinner ::ng-deep circle {
+  stroke: white;
+}
+
+.divider {
+  margin: 24px 0;
+}
+
+/* Help Text */
+.help-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #6b7280;
+  text-align: center;
+  margin: 16px 0;
+}
+
+.help-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #3b82f6;
+}
+
+/* Demo Card */
+.demo-card {
+  background-color: #eff6ff !important;
+  border: 1px solid #bfdbfe !important;
+  margin-top: 16px;
+}
+
+.demo-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e40af;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.demo-title mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.demo-content {
+  padding: 8px 0 0 0;
+}
+
+.demo-account {
+  font-size: 13px;
+  color: #1e40af;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.demo-account:last-child {
+  margin-bottom: 0;
+}
+
+.demo-account strong {
+  font-weight: 600;
+}
+
+.demo-account span {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #2563eb;
+}
+
+/* Back Link */
+.back-link {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.back-link a {
+  color: white;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-link a:hover {
+  color: #ffedd5;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .login-container {
+    padding: 16px;
+  }
+
+  .logo {
+    width: 64px;
+    height: 64px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+}

@@ -1,96 +1,116 @@
-<div class="min-h-screen bg-gradient-to-br from-primary-500 to-primary-900 flex items-center justify-center p-4">
-  <div class="w-full max-w-md">
-    <!-- Card -->
-    <div class="bg-white rounded-2xl shadow-2xl p-8">
+<div class="login-container">
+  <div class="login-wrapper">
+    <mat-card class="login-card">
       <!-- Logo and Title -->
-      <div class="text-center mb-8">
-        <img src="/icons/android-chrome-192x192.png" alt="SDN Plandi 1 Jombang" class="w-20 h-20 mx-auto mb-4 rounded-lg">
-        <h1 class="text-3xl font-display font-bold text-gray-900 mb-2">Admin Portal</h1>
-        <p class="text-gray-600">SDN Plandi 1 Jombang</p>
-      </div>
+      <mat-card-header class="login-header">
+        <div class="header-content">
+          <img src="/icons/android-chrome-192x192.png" alt="SDN Plandi 1 Jombang" class="logo">
+          <h1 class="title">Admin Portal</h1>
+          <p class="subtitle">SDN Plandi 1 Jombang</p>
+        </div>
+      </mat-card-header>
 
-      <!-- Login Form -->
-      <form (ngSubmit)="onSubmit()" class="space-y-6">
-        <!-- Email -->
-        <div>
-          <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            [(ngModel)]="email"
-            name="email"
-            required
-            autocomplete="email"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            placeholder="nama@sdnplandi1jombang.sch.id"
+      <mat-card-content>
+        <!-- Login Form -->
+        <form (ngSubmit)="onSubmit()" class="login-form">
+          <!-- Email Field -->
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input
+              matInput
+              type="email"
+              [(ngModel)]="email"
+              name="email"
+              required
+              autocomplete="email"
+              placeholder="nama@sdnplandi1jombang.sch.id"
+              [disabled]="loading"
+            >
+            <mat-icon matPrefix>email</mat-icon>
+            <mat-error>Email harus diisi</mat-error>
+          </mat-form-field>
+
+          <!-- Password Field -->
+          <mat-form-field appearance="outline">
+            <mat-label>Password</mat-label>
+            <input
+              matInput
+              [type]="hidePassword ? 'password' : 'text'"
+              [(ngModel)]="password"
+              name="password"
+              required
+              autocomplete="current-password"
+              placeholder="Masukkan password"
+              [disabled]="loading"
+            >
+            <mat-icon matPrefix>lock</mat-icon>
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="'Hide password'"
+              [attr.aria-pressed]="hidePassword"
+            >
+              <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error>Password harus diisi</mat-error>
+          </mat-form-field>
+
+          <!-- Submit Button -->
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            class="submit-button"
             [disabled]="loading"
           >
-        </div>
+            @if (loading) {
+              <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+              <span>Memproses...</span>
+            } @else {
+              <ng-container>
+                <mat-icon>login</mat-icon>
+                <span>Masuk</span>
+              </ng-container>
+            }
+          </button>
+        </form>
 
-        <!-- Password -->
-        <div>
-          <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            [(ngModel)]="password"
-            name="password"
-            required
-            autocomplete="current-password"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            placeholder="••••••••"
-            [disabled]="loading"
-          >
-        </div>
+        <mat-divider class="divider"></mat-divider>
 
-        <!-- Error Message -->
-        @if (errorMessage) {
-          <div class="p-4 bg-red-50 border-2 border-red-200 rounded-lg">
-            <p class="text-red-800 text-sm font-semibold text-center">{{ errorMessage }}</p>
-          </div>
-        }
-
-        <!-- Submit Button -->
-        <button
-          type="submit"
-          [disabled]="loading"
-          class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
-          @if (loading) {
-            <span class="flex items-center justify-center">
-              <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Memproses...
-            </span>
-          } @else {
-            Masuk
-          }
-        </button>
-      </form>
-
-      <!-- Help Text -->
-      <div class="mt-6 text-center">
-        <p class="text-sm text-gray-600">
+        <!-- Help Text -->
+        <p class="help-text">
+          <mat-icon class="help-icon">info</mat-icon>
           Gunakan email dan password yang telah diberikan oleh admin sekolah
         </p>
-      </div>
 
-      <!-- Default Credentials Info (for development) -->
-      <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p class="text-xs font-semibold text-blue-800 mb-2">Akun Demo:</p>
-        <p class="text-xs text-blue-700">Admin: admin&#64;sdnplandi1jombang.sch.id / admin123</p>
-        <p class="text-xs text-blue-700">Wali K1: siti.aminah&#64;sdnplandi1jombang.sch.id / wali123</p>
-      </div>
-    </div>
+        <!-- Demo Credentials (Development) -->
+        <mat-card class="demo-card">
+          <mat-card-header>
+            <mat-card-title class="demo-title">
+              <mat-icon>key</mat-icon>
+              Akun Demo
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="demo-content">
+            <div class="demo-account">
+              <strong>Admin:</strong>
+              <span>admin@sdnplandi1jombang.sch.id / admin123</span>
+            </div>
+            <div class="demo-account">
+              <strong>Wali K1:</strong>
+              <span>siti.aminah@sdnplandi1jombang.sch.id / wali123</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </mat-card-content>
+    </mat-card>
 
     <!-- Back to Home -->
-    <div class="text-center mt-6">
-      <a href="/" class="text-white hover:text-orange-200 font-semibold underline">
+    <div class="back-link">
+      <a href="/" mat-button>
+        <mat-icon>home</mat-icon>
         Kembali ke Beranda
       </a>
     </div>
