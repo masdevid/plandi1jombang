@@ -43,11 +43,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           // Basic input sanitization
           const sanitizedEmail = email.trim().toLowerCase();
 
-          // Find user by email (never select password_hash unless needed for verification)
+          // Find user by email/username (never select password_hash unless needed for verification)
           const userResult = await sql`
-            SELECT id, nip, name, email, password_hash, role, is_wali_kelas, assigned_class, phone, photo, active, created_at
-            FROM users
-            WHERE LOWER(email) = ${sanitizedEmail} AND active = 1
+            SELECT
+              u.id,
+              u.username,
+              u.password_hash,
+              u.role,
+              u.teacher_id,
+              u.is_active,
+              u.created_at,
+              t.nip,
+              t.full_name,
+              t.email,
+              t.phone,
+              r.class_code as assigned_class
+            FROM users u
+            LEFT JOIN teachers t ON u.teacher_id = t.id
+            LEFT JOIN rombel_memberships rm ON rm.teacher_id = t.id AND rm.role = 'wali_kelas'
+            LEFT JOIN rombels r ON rm.rombel_id = r.id
+            WHERE LOWER(u.username) = ${sanitizedEmail} AND u.is_active = true
           `;
 
           if (userResult.rows.length === 0) {

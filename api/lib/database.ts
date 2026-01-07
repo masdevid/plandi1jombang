@@ -460,15 +460,15 @@ function mapRowToLeaveRequest(row: any): LeaveRequest {
 function mapRowToUser(row: any): any {
   return {
     id: row.id,
-    nip: row.nip,
-    name: row.name,
-    email: row.email,
+    nip: row.nip || null,
+    full_name: row.full_name || row.name || null,  // Support both old and new schema
+    email: row.email || row.username,  // Support both old and new schema
     role: row.role,
-    isWaliKelas: Boolean(row.is_wali_kelas),
-    assignedClass: row.assigned_class,
-    phone: row.phone,
-    photo: row.photo,
-    active: Boolean(row.active),
+    isWaliKelas: row.assigned_class ? true : false,  // Determined by having assigned_class
+    assigned_class: row.assigned_class || null,
+    phone: row.phone || null,
+    photo: row.photo || null,
+    active: Boolean(row.is_active ?? row.active),  // Support both field names
     createdAt: row.created_at
   };
 }
