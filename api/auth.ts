@@ -57,10 +57,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               t.full_name,
               t.email,
               t.phone,
-              r.class_code as assigned_class
+              CONCAT(r.grade_level, r.class_name) as assigned_class
             FROM users u
             LEFT JOIN teachers t ON u.teacher_id = t.id
-            LEFT JOIN rombels r ON r.wali_kelas_id = t.id
+            LEFT JOIN rombels r ON r.wali_teacher_id = t.id
             WHERE LOWER(u.username) = ${sanitizedEmail} AND u.is_active = true
           `;
 
