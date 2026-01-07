@@ -5,7 +5,7 @@
 | Aspect | Vercel (Before) | Local Docker (Now) |
 |--------|----------------|-------------------|
 | **API Endpoints** | 12 max (Hobby plan) | Unlimited |
-| **Current Endpoints** | 11 (near limit) | 10 (no limit) |
+| **Current Endpoints** | 11 (near limit) | 8 (no limit) |
 | **Function Cost** | Paid after limit | Free |
 | **Cold Starts** | Yes (~1s) | No |
 | **Response Time** | 200-500ms | 50-100ms |
@@ -93,7 +93,7 @@ git push
 ## Endpoint Migration
 
 ### Removed from Vercel
-All 10 API endpoints now run locally:
+All 8 API endpoints now run locally:
 
 1. /health → http://localhost:3001/health
 2. /auth → http://localhost:3001/auth
@@ -101,10 +101,8 @@ All 10 API endpoints now run locally:
 4. /students → http://localhost:3001/students
 5. /attendance → http://localhost:3001/attendance
 6. /leave-requests → http://localhost:3001/leave-requests
-7. /db-init → http://localhost:3001/db-init
-8. /db-migrate-columns → http://localhost:3001/db-migrate-columns
-9. /intrakurikuler → http://localhost:3001/intrakurikuler
-10. /ekstrakurikuler → http://localhost:3001/ekstrakurikuler
+7. /db-migrate → http://localhost:3001/db-migrate
+8. /promote-students → http://localhost:3001/promote-students
 
 ### Why This is Better
 

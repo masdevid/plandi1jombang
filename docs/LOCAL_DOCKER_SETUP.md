@@ -30,10 +30,8 @@ This setup separates the API from Vercel deployment to avoid serverless function
 │  - /students                            │
 │  - /attendance                          │
 │  - /leave-requests                      │
-│  - /db-init                             │
-│  - /db-migrate-columns                  │
-│  - /intrakurikuler                      │
-│  - /ekstrakurikuler                     │
+│  - /db-migrate                          │
+│  - /promote-students                    │
 └─────────────────┬───────────────────────┘
                   │
                   │ SQL Queries
@@ -171,9 +169,8 @@ All endpoints available at `http://localhost:3001`:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | /db-init | Initialize & seed database |
-| POST | /db-init?force=true | Force re-seed |
-| POST | /db-migrate-columns | Add new columns to tables |
+| POST | /db-migrate | Initialize & seed database |
+| POST | /promote-students | Promote students to next year |
 
 ## Configuration
 
@@ -223,15 +220,17 @@ export const environment = {
 
 Tables created automatically on first run:
 
-1. **students** - 161 students from Excel
-2. **users** - Admin, teachers, staff
-3. **sessions** - Authentication sessions
-4. **attendance** - Check-in/out records
-5. **leave_requests** - Izin/sakit requests
-6. **intrakurikuler_subjects** - Subjects (12 total)
-7. **intrakurikuler_class_assignments** - Class schedules
-8. **extrakurikuler_activities** - Activities (4 total)
-9. **extrakurikuler_members** - Student memberships
+1. **students** - 161 students from students-data.json
+2. **academic_years** - Academic year records (cohort-based)
+3. **teachers** - Teacher information
+4. **rombels** - Class groups per academic year
+5. **rombel_memberships** - Student enrollment tracking
+6. **subjects** - All subjects (intrakurikuler + ekstrakurikuler)
+7. **attendance** - Daily attendance records
+8. **leave_requests** - Leave request workflow
+9. **transfers** - School transfer records
+10. **users** - Authentication
+11. **sessions** - Auth sessions
 
 ## Testing
 
@@ -404,7 +403,7 @@ docker-compose -f docker-compose.local.yml up -d --build
 
 ## Current Endpoint Count
 
-**Total**: 10 endpoints (no limit!)
+**Total**: 8 endpoints (no limit!)
 
 1. /health
 2. /auth
@@ -412,10 +411,8 @@ docker-compose -f docker-compose.local.yml up -d --build
 4. /students
 5. /attendance
 6. /leave-requests
-7. /db-init
-8. /db-migrate-columns
-9. /intrakurikuler
-10. /ekstrakurikuler
+7. /db-migrate
+8. /promote-students
 
 ## Next Steps
 
@@ -430,7 +427,7 @@ docker-compose -f docker-compose.local.yml up -d --build
 
 This setup provides:
 - ✅ No serverless function limits
-- ✅ All 10 endpoints working locally
+- ✅ All 8 endpoints working locally
 - ✅ Easy to add more endpoints
 - ✅ Better development experience
 - ✅ Full database control

@@ -19,11 +19,19 @@ if (isVercel) {
 
   console.log('Using local PostgreSQL:', connectionString.replace(/:[^:@]+@/, ':***@'));
 
-  sql = postgres(connectionString, {
+  const postgresClient = postgres(connectionString, {
     max: 10,
     idle_timeout: 20,
     connect_timeout: 10,
   });
+
+  // Wrap postgres client to return arrays directly (matching postgres library behavior)
+  sql = async (strings: TemplateStringsArray, ...values: any[]) => {
+    return await postgresClient(strings, ...values);
+  };
+
+  // Expose raw client for migrations
+  (sql as any).raw = postgresClient;
 }
 
 export { sql, isVercel };

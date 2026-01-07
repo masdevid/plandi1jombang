@@ -135,30 +135,10 @@ app.all('/leave-requests', async (req, res) => {
   }
 });
 
-// Database init endpoint
-app.post('/db-init', async (req, res) => {
+// Database migration endpoint (unified schema)
+app.post('/db-migrate', async (req, res) => {
   try {
-    const dbInitModule = await import('../api/db-init.ts');
-    const mockReq = { method: 'POST', query: req.query, body: req.body, headers: req.headers };
-    const mockRes = {
-      status: (code) => ({
-        json: (data) => res.status(code).json(data),
-        end: (msg) => res.status(code).end(msg)
-      }),
-      json: (data) => res.json(data),
-      setHeader: (name, value) => res.setHeader(name, value)
-    };
-    await dbInitModule.default(mockReq, mockRes);
-  } catch (error) {
-    console.error('DB init endpoint error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Database migration endpoint
-app.post('/db-migrate-columns', async (req, res) => {
-  try {
-    const migrateModule = await import('../api/db-migrate-columns.ts');
+    const migrateModule = await import('../api/db-migrate.ts');
     const mockReq = { method: 'POST', query: req.query, body: req.body, headers: req.headers };
     const mockRes = {
       status: (code) => ({
@@ -175,11 +155,11 @@ app.post('/db-migrate-columns', async (req, res) => {
   }
 });
 
-// Intrakurikuler endpoint
-app.all('/intrakurikuler', async (req, res) => {
+// Student promotion endpoint (year-end transitions)
+app.post('/promote-students', async (req, res) => {
   try {
-    const intraModule = await import('../api/intrakurikuler.ts');
-    const mockReq = { method: req.method, query: req.query, body: req.body, headers: req.headers };
+    const promoteModule = await import('../api/promote-students.ts');
+    const mockReq = { method: 'POST', query: req.query, body: req.body, headers: req.headers };
     const mockRes = {
       status: (code) => ({
         json: (data) => res.status(code).json(data),
@@ -188,29 +168,9 @@ app.all('/intrakurikuler', async (req, res) => {
       json: (data) => res.json(data),
       setHeader: (name, value) => res.setHeader(name, value)
     };
-    await intraModule.default(mockReq, mockRes);
+    await promoteModule.default(mockReq, mockRes);
   } catch (error) {
-    console.error('Intrakurikuler endpoint error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Ekstrakurikuler endpoint
-app.all('/ekstrakurikuler', async (req, res) => {
-  try {
-    const eksModule = await import('../api/ekstrakurikuler.ts');
-    const mockReq = { method: req.method, query: req.query, body: req.body, headers: req.headers };
-    const mockRes = {
-      status: (code) => ({
-        json: (data) => res.status(code).json(data),
-        end: (msg) => res.status(code).end(msg)
-      }),
-      json: (data) => res.json(data),
-      setHeader: (name, value) => res.setHeader(name, value)
-    };
-    await eksModule.default(mockReq, mockRes);
-  } catch (error) {
-    console.error('Ekstrakurikuler endpoint error:', error);
+    console.error('Promotion endpoint error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -232,8 +192,6 @@ app.listen(PORT, () => {
   console.log('  ALL  /students');
   console.log('  ALL  /attendance');
   console.log('  ALL  /leave-requests');
-  console.log('  POST /db-init');
-  console.log('  POST /db-migrate-columns');
-  console.log('  ALL  /intrakurikuler');
-  console.log('  ALL  /ekstrakurikuler');
+  console.log('  POST /db-migrate');
+  console.log('  POST /promote-students');
 });

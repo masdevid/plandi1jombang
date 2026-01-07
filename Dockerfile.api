@@ -13,6 +13,9 @@ COPY api-server/package*.json ./api-server/
 WORKDIR /app/api-server
 RUN npm install
 
+# Install tsx globally for TypeScript execution
+RUN npm install -g tsx
+
 # Back to app root
 WORKDIR /app
 
@@ -20,8 +23,11 @@ WORKDIR /app
 COPY api ./api
 COPY api-server ./api-server
 
+# Create symlink so api/ can access api-server/node_modules
+RUN ln -s /app/api-server/node_modules /app/api/node_modules
+
 # Expose port
 EXPOSE 3001
 
-# Start server
-CMD ["node", "api-server/server.js"]
+# Start server with tsx to support TypeScript imports
+CMD ["tsx", "api-server/server.js"]

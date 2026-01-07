@@ -102,9 +102,7 @@ pnpm docker:logs        # View logs
 pnpm docker:restart     # Restart API
 
 # Database
-pnpm db:init            # Initialize database
-pnpm db:migrate:columns # Add new columns
-pnpm db:seed            # Seed with 161 students
+pnpm db:migrate         # Initialize & seed database with 161 students
 
 # Testing
 pnpm test:api           # Run API tests
@@ -128,7 +126,7 @@ sd-plandi/
 │   ├── admin.ts             # Admin dashboard API
 │   └── migrate.ts           # Database migration script
 ├── api-server/              # Docker Express API Server
-│   ├── server.js            # Express server (10 endpoints)
+│   ├── server.js            # Express server (8 endpoints)
 │   └── package.json         # API dependencies
 ├── src/                     # Angular application
 │   ├── app/
@@ -158,7 +156,7 @@ sd-plandi/
 **Logo**: Tersedia di \`/public/icons/\`
 **Font**: Poppins (heading), Inter (body)
 
-## 📱 API Endpoints (10 Total)
+## 📱 API Endpoints (8 Total)
 
 ### Local Docker: `http://localhost:3001`
 ### Vercel: `https://plandi1jombang.vercel.app/api`
@@ -166,13 +164,11 @@ sd-plandi/
 1. **GET /health** - Health check & database status
 2. **POST/GET /auth** - Authentication (login/verify)
 3. **GET /admin** - Admin dashboard (requires auth)
-4. **GET /students** - 161 students from Excel
+4. **GET /students** - 161 students from students-data.json
 5. **GET/POST /attendance** - Attendance records & check-in
 6. **GET/POST/PUT /leave-requests** - Leave management
-7. **POST /db-init** - Database initialization
-8. **POST /db-migrate-columns** - Schema migrations
-9. **GET /intrakurikuler** - Subjects & class assignments
-10. **GET /ekstrakurikuler** - Activities & members
+7. **POST /db-migrate** - Database migration & seeding
+8. **POST /promote-students** - Year-end student promotion
 
 Detail lengkap: [GETTING_STARTED.md](GETTING_STARTED.md)
 
@@ -188,9 +184,7 @@ pnpm api:install
 pnpm docker:up
 
 # 3. Initialize database
-pnpm db:init
-pnpm db:migrate:columns
-pnpm db:seed
+pnpm db:migrate
 
 # 4. Start frontend
 pnpm start
@@ -226,11 +220,18 @@ vercel --prod
 
 ## 📊 Database Schema
 
-**Students**: id, nis, name, class (K1-K6), photo, qr_code, active
-**Attendance**: id, student_id, check_in_time, date, status
-**Leave Requests**: id, student_id, start_date, end_date, reason, status
+**Cohort-Based Dapodik Architecture:**
 
-Detail lengkap: [Database Migration](docs/DATABASE_MIGRATION.md)
+- **students** - Student identity (never changes)
+- **academic_years** - Cohort entry years (ay2020-ay2026)
+- **rombels** - Class groups linked to cohort entry year
+- **rombel_memberships** - Active enrollment tracking
+- **subjects** - All subjects (intrakurikuler + ekstrakurikuler)
+- **attendance** - Daily attendance with QR scanner
+- **leave_requests** - Leave request workflow
+- **teachers, users, sessions, transfers** - Supporting tables
+
+Detail lengkap: [Database Migration Summary](docs/DATABASE_MIGRATION_SUMMARY.md)
 
 ## 🔒 Security
 
