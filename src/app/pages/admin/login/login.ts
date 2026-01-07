@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -29,7 +29,7 @@ import { NotificationService } from '../../../services/notification.service';
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class Login {
+export class Login implements OnInit {
   email = '';
   password = '';
   loading = false;
@@ -40,10 +40,12 @@ export class Login {
   private route = inject(ActivatedRoute);
   private notificationService = inject(NotificationService);
 
-  constructor() {
-    // Redirect if already logged in
+  ngOnInit() {
+    // Redirect if already logged in (use setTimeout to avoid change detection issues)
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/admin/dashboard']);
+      setTimeout(() => {
+        this.router.navigate(['/admin/dashboard']);
+      });
     }
   }
 
