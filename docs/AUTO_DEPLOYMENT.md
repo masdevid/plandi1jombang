@@ -24,6 +24,26 @@ GitHub Actions automatically deploys to your server via SSH when you push to the
 - GitHub-managed infrastructure
 - Build logs visible in GitHub UI
 - Easy to debug and monitor
+- **Smart deployment**: Only rebuilds containers when necessary
+- **Fast deployments**: Skips rebuilds for docs/frontend changes
+
+### 🧠 Smart Deployment Logic
+
+The workflow intelligently detects what changed and deploys accordingly:
+
+| Change Type | Action Taken | Rebuild? | Speed |
+|------------|--------------|----------|-------|
+| **API files** (`api/`, `api-server/`) | Rebuild API container only | ✅ Yes | ~2 min |
+| **Docker files** (`Dockerfile`, `docker-compose.yml`) | Rebuild all containers | ✅ Yes | ~3 min |
+| **Frontend files** (`src/`, `angular.json`) | Pull code, note in logs | ❌ No | ~10 sec |
+| **Documentation** (`docs/`, `*.md`) | Skip deployment entirely | ❌ No | - |
+| **Config only** (`.env`, scripts) | Restart containers | ❌ No | ~30 sec |
+
+**Example scenarios:**
+- Fix typo in API → Rebuilds API container (~2 min)
+- Update dashboard UI → Just pulls code (~10 sec)
+- Edit README → Workflow doesn't run
+- Change Dockerfile → Rebuilds everything (~3 min)
 
 ### 📝 Setup Steps
 
@@ -99,6 +119,17 @@ cd /opt/sd-plandi
 docker-compose ps
 docker-compose logs --tail=50
 ```
+
+### 🔧 Manual Rebuild (Force Full Rebuild)
+
+Sometimes you need to force a full Docker rebuild (e.g., after updating dependencies):
+
+1. Go to **GitHub** → **Actions** → **Deploy to Production Server**
+2. Click **Run workflow** button
+3. Check the **Force rebuild Docker images** checkbox
+4. Click **Run workflow**
+
+This will rebuild all Docker images from scratch, even if no API changes were detected.
 
 ### 🔧 Customizing the Workflow
 

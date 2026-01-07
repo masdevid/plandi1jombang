@@ -71,25 +71,49 @@ git log --oneline --decorate --graph HEAD..origin/$BRANCH | head -10
 log "⬇️  Pulling latest code..."
 git reset --hard origin/$BRANCH || error "Failed to pull latest code"
 
+NEW_COMMIT=$(git rev-parse HEAD)
+
 # Check if .env.docker exists
 if [ ! -f .env.docker ]; then
     error ".env.docker file not found! Please create it before deploying."
 fi
 
-# Stop containers
-log "🛑 Stopping Docker containers..."
-docker-compose down || warning "Failed to stop containers (they might not be running)"
+# Detect what changed
+API_CHANGED=false
+DOCKER_CHANGED=false
 
-# Remove old images (optional - uncomment if needed)
-# log "🗑️  Removing old images..."
-# docker-compose down --rmi local
+if [ "$CURRENT_COMMIT" != "$NEW_COMMIT" ]; then
+    # Check if API files changed
+    if git diff --name-only $CURRENT_COMMIT $NEW_COMMIT | grep -qE '^(api/|api-server/)'; then
+        API_CHANGED=true
+        log "📌 API files changed - will rebuild API container"
+    fi
 
-# Build new images
-log "🔨 Building Docker images..."
-docker-compose build --no-cache || error "Failed to build Docker images"
+    # Check if Docker files changed
+    if git diff --name-only $CURRENT_COMMIT $NEW_COMMIT | grep -qE '^(Dockerfile|docker-compose.yml)'; then
+        DOCKER_CHANGED=true
+        log "📌 Docker configuration changed - will rebuild all containers"
+    fi
+fi
 
-# Start containers
-log "🚀 Starting Docker containers..."
+# Smart deployment based on changes
+if [ "$DOCKER_CHANGED" = true ]; then
+    log "🔨 Docker configuration changed - rebuilding all containers..."
+    docker-compose down
+    docker-compose build --no-cache
+    docker-compose up -d
+elif [ "$API_CHANGED" = true ]; then
+    log "🔨 API changed - rebuilding API container only..."
+    docker-compose stop api
+    docker-compose build api
+    docker-compose up -d api
+else
+    log "✓ No container changes detected - restarting to pick up code updates..."
+    docker-compose restart api
+fi
+
+# Ensure all services are running
+log "🚀 Ensuring all services are running..."
 docker-compose up -d || error "Failed to start containers"
 
 # Wait for services to be healthy

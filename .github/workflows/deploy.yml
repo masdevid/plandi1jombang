@@ -4,12 +4,60 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+      - '*.md'
   workflow_dispatch: # Allow manual trigger
+    inputs:
+      rebuild:
+        description: 'Force rebuild Docker images'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
-  deploy:
-    name: Deploy Docker Application
+  detect-changes:
+    name: Detect Changed Files
     runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.changes.outputs.api }}
+      frontend: ${{ steps.changes.outputs.frontend }}
+      docker: ${{ steps.changes.outputs.docker }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect file changes
+        id: changes
+        run: |
+          # Check if API files changed
+          if git diff --name-only HEAD^ HEAD | grep -E '^(api/|api-server/)'; then
+            echo "api=true" >> $GITHUB_OUTPUT
+          else
+            echo "api=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check if frontend files changed
+          if git diff --name-only HEAD^ HEAD | grep -E '^(src/|angular.json|package.json)'; then
+            echo "frontend=true" >> $GITHUB_OUTPUT
+          else
+            echo "frontend=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check if Docker files changed
+          if git diff --name-only HEAD^ HEAD | grep -E '^(Dockerfile|docker-compose.yml|\.env)'; then
+            echo "docker=true" >> $GITHUB_OUTPUT
+          else
+            echo "docker=false" >> $GITHUB_OUTPUT
+          fi
+
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: detect-changes
 
     steps:
       - name: Checkout code
@@ -17,42 +65,66 @@ jobs:
 
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          REBUILD_API: ${{ needs.detect-changes.outputs.api == 'true' || needs.detect-changes.outputs.docker == 'true' || github.event.inputs.rebuild == 'true' }}
+          REBUILD_FRONTEND: ${{ needs.detect-changes.outputs.frontend == 'true' || github.event.inputs.rebuild == 'true' }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
+          envs: REBUILD_API,REBUILD_FRONTEND
           script: |
             set -e
-            echo "🚀 Starting deployment..."
+            echo "🚀 Starting smart deployment..."
 
             # Navigate to project directory
             cd ${{ secrets.PROJECT_PATH || '/opt/sd-plandi' }}
+
+            # Save current commit for comparison
+            OLD_COMMIT=$(git rev-parse HEAD)
 
             # Pull latest changes
             echo "📥 Pulling latest code from main branch..."
             git fetch origin
             git reset --hard origin/main
 
-            # Copy environment file if not exists
+            NEW_COMMIT=$(git rev-parse HEAD)
+
+            # Show what changed
+            if [ "$OLD_COMMIT" != "$NEW_COMMIT" ]; then
+              echo "📊 Changes deployed:"
+              git log --oneline --decorate $OLD_COMMIT..$NEW_COMMIT | head -5
+            else
+              echo "✓ Already up to date"
+              exit 0
+            fi
+
+            # Check if .env.docker exists
             if [ ! -f .env.docker ]; then
               echo "⚠️  .env.docker not found, please create it manually"
               exit 1
             fi
 
-            # Stop containers
-            echo "🛑 Stopping containers..."
-            docker-compose down
+            # Determine what needs rebuilding
+            if [ "$REBUILD_API" = "true" ]; then
+              echo "🔨 API changes detected - rebuilding API container..."
+              docker-compose stop api
+              docker-compose build api
+              docker-compose up -d api
+            else
+              echo "✓ No API changes - skipping API rebuild"
+              # Just restart to pick up code changes (volumes are mounted)
+              docker-compose restart api
+            fi
 
-            # Pull latest images (if using external registry)
-            # docker-compose pull
+            if [ "$REBUILD_FRONTEND" = "true" ]; then
+              echo "📦 Frontend changes detected"
+              echo "Note: Frontend is static, served by Vercel or nginx"
+            fi
 
-            # Rebuild images
-            echo "🔨 Building Docker images..."
-            docker-compose build --no-cache
-
-            # Start containers
-            echo "🚀 Starting containers..."
+            # Ensure all services are running
+            echo "🚀 Ensuring all services are running..."
             docker-compose up -d
 
             # Wait for health check
@@ -60,14 +132,26 @@ jobs:
             sleep 10
 
             # Check service status
+            echo "📋 Service status:"
             docker-compose ps
 
-            # Show logs
-            echo "📋 Recent logs:"
-            docker-compose logs --tail=50
+            # Check API health
+            API_PORT=$(grep API_PORT .env.docker | cut -d '=' -f2 || echo "3001")
+            if curl -f http://localhost:${API_PORT}/health > /dev/null 2>&1; then
+              echo "✅ API is healthy"
+            else
+              echo "⚠️  API health check failed"
+              docker-compose logs --tail=30 api
+            fi
 
-            # Cleanup old images
-            echo "🧹 Cleaning up unused images..."
-            docker image prune -f
+            # Show recent logs
+            echo "📋 Recent logs:"
+            docker-compose logs --tail=20
+
+            # Cleanup old images only if we rebuilt
+            if [ "$REBUILD_API" = "true" ]; then
+              echo "🧹 Cleaning up old images..."
+              docker image prune -f
+            fi
 
             echo "✅ Deployment completed successfully!"
