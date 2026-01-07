@@ -1,0 +1,23 @@
+[Unit]
+Description=SD Plandi GitHub Webhook Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/sd-plandi/scripts
+ExecStart=/usr/bin/node /opt/sd-plandi/scripts/webhook-server.js
+Restart=always
+RestartSec=10
+
+# Environment variables
+Environment="WEBHOOK_PORT=9000"
+Environment="WEBHOOK_SECRET=your-github-webhook-secret-here"
+Environment="DEPLOY_SCRIPT=/opt/sd-plandi/scripts/deploy.sh"
+
+# Logging
+StandardOutput=append:/var/log/sd-plandi-webhook.log
+StandardError=append:/var/log/sd-plandi-webhook-error.log
+
+[Install]
+WantedBy=multi-user.target
