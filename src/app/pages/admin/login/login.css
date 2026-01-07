@@ -88,73 +88,42 @@ mat-form-field {
   margin: 24px 0;
 }
 
-/* Help Text */
-.help-text {
+/* Help Section */
+.help-section {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #6b7280;
-  text-align: center;
-  margin: 16px 0;
-}
-
-.help-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  color: #3b82f6;
-}
-
-/* Demo Card */
-.demo-card {
-  background-color: #eff6ff !important;
-  border: 1px solid #bfdbfe !important;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background-color: #f0f9ff;
+  border-radius: 8px;
   margin-top: 16px;
 }
 
-.demo-title {
+.help-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.help-content {
+  flex: 1;
+}
+
+.help-title {
   font-size: 14px;
   font-weight: 600;
   color: #1e40af;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
+  margin: 0 0 4px 0;
 }
 
-.demo-title mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-}
-
-.demo-content {
-  padding: 8px 0 0 0;
-}
-
-.demo-account {
+.help-description {
   font-size: 13px;
-  color: #1e40af;
-  margin-bottom: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.demo-account:last-child {
-  margin-bottom: 0;
-}
-
-.demo-account strong {
-  font-weight: 600;
-}
-
-.demo-account span {
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  color: #2563eb;
+  color: #1e3a8a;
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* Back Link */
