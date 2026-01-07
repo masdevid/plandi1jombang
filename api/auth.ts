@@ -60,8 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               r.class_code as assigned_class
             FROM users u
             LEFT JOIN teachers t ON u.teacher_id = t.id
-            LEFT JOIN rombel_memberships rm ON rm.teacher_id = t.id AND rm.role = 'wali_kelas'
-            LEFT JOIN rombels r ON rm.rombel_id = r.id
+            LEFT JOIN rombels r ON r.wali_kelas_id = t.id
             WHERE LOWER(u.username) = ${sanitizedEmail} AND u.is_active = true
           `;
 
