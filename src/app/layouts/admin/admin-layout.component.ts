@@ -42,13 +42,13 @@ interface NavItem {
 export class AdminLayoutComponent implements OnInit {
   sidenavOpened = signal(true);
   currentUser = computed(() => this.authService.currentUser());
+  pendingLeaveRequestsCount = signal(0);
 
   navItems: NavItem[] = [
     { icon: 'dashboard', label: 'Dashboard', route: '/admin/dashboard' },
     { icon: 'qr_code_scanner', label: 'Check-In', route: '/admin/check-in' },
     { icon: 'people', label: 'Siswa', route: '/admin/siswa' },
     { icon: 'assignment', label: 'Laporan', route: '/admin/laporan' },
-    { icon: 'event', label: 'Izin/Sakit', route: '/admin/leave-requests', badge: 0 },
   ];
 
   constructor(
@@ -64,15 +64,14 @@ export class AdminLayoutComponent implements OnInit {
     try {
       const response = await fetch('/api/leave-requests?status=pending', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
       });
 
       if (response.ok) {
         const data = await response.json();
-        const leaveItem = this.navItems.find(item => item.route === '/admin/leave-requests');
-        if (leaveItem && Array.isArray(data)) {
-          leaveItem.badge = data.length;
+        if (Array.isArray(data)) {
+          this.pendingLeaveRequestsCount.set(data.length);
         }
       }
     } catch (error) {

@@ -31,7 +31,7 @@
             routerLinkActive="active"
             class="nav-item"
           >
-            <mat-icon matListItemIcon [matBadge]="item.badge || null" [matBadgeHidden]="!item.badge" matBadgeColor="warn" matBadgeSize="small">
+            <mat-icon matListItemIcon>
               {{ item.icon }}
             </mat-icon>
             <span matListItemTitle>{{ item.label }}</span>
@@ -72,7 +72,7 @@
         matTooltip="Notifications"
         [matMenuTriggerFor]="notificationMenu"
       >
-        <mat-icon [matBadge]="navItems.find(item => item.route === '/admin/leave-requests')?.badge || 0" [matBadgeHidden]="!navItems.find(item => item.route === '/admin/leave-requests')?.badge" matBadgeColor="warn" matBadgeSize="small">
+        <mat-icon [matBadge]="pendingLeaveRequestsCount()" [matBadgeHidden]="pendingLeaveRequestsCount() === 0" matBadgeColor="warn" matBadgeSize="small">
           notifications
         </mat-icon>
       </button>
@@ -92,10 +92,10 @@
           <h3>Notifications</h3>
         </div>
         <mat-divider></mat-divider>
-        @if ((navItems.find(item => item.route === '/admin/leave-requests')?.badge || 0) > 0) {
-          <button mat-menu-item [routerLink]="['/admin/leave-requests']">
+        @if (pendingLeaveRequestsCount() > 0) {
+          <button mat-menu-item disabled>
             <mat-icon>event</mat-icon>
-            <span>{{ navItems.find(item => item.route === '/admin/leave-requests')?.badge }} pending leave requests</span>
+            <span>{{ pendingLeaveRequestsCount() }} pending leave requests</span>
           </button>
         } @else {
           <div class="empty-notification">

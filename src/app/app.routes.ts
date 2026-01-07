@@ -53,10 +53,6 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/absensi/students/students').then(m => m.Students)
       },
       {
-        path: 'leave-requests',
-        loadComponent: () => import('./pages/admin/leave-requests/leave-requests').then(m => m.LeaveRequestsComponent)
-      },
-      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full'

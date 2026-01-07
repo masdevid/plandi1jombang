@@ -1,7 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDividerModule } from '@angular/material/divider';
 import { AuthService, User } from '../../../services/auth.service';
+import { NotificationService } from '../../../services/notification.service';
 import { getClassDisplayName } from '../../../models/attendance.model';
 
 interface DashboardStats {
@@ -42,7 +49,16 @@ interface LeaveRequest {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, RouterLink],
+  imports: [
+    CommonModule,
+    RouterLink,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatChipsModule,
+    MatProgressSpinnerModule,
+    MatDividerModule
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -52,13 +68,11 @@ export class Dashboard implements OnInit {
   recentAttendance: AttendanceRecord[] = [];
   pendingLeaveRequests: LeaveRequest[] = [];
   loading = true;
-  errorMessage = '';
   today = new Date().toISOString().split('T')[0];
 
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private notificationService = inject(NotificationService);
 
   async ngOnInit() {
     this.user = this.authService.getCurrentUser();
@@ -72,7 +86,6 @@ export class Dashboard implements OnInit {
 
   async loadDashboardData() {
     this.loading = true;
-    this.errorMessage = '';
 
     try {
       const headers = this.authService.getAuthHeaders();
@@ -93,7 +106,7 @@ export class Dashboard implements OnInit {
       if (statsResponse.ok) {
         this.stats = await statsResponse.json();
       } else {
-        this.errorMessage = 'Gagal memuat statistik dashboard';
+        this.notificationService.error('Gagal memuat statistik dashboard');
       }
 
       // Load recent attendance
@@ -116,15 +129,10 @@ export class Dashboard implements OnInit {
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      this.errorMessage = 'Koneksi ke server gagal, periksa internet Anda';
+      this.notificationService.error('Koneksi ke server gagal, periksa internet Anda');
     } finally {
       this.loading = false;
     }
-  }
-
-  async logout() {
-    await this.authService.logout();
-    this.router.navigate(['/admin/login']);
   }
 
   getClassDisplayName(classCode: string | null | undefined): string {
@@ -143,9 +151,6 @@ export class Dashboard implements OnInit {
   }
 
   async approveLeaveRequest(id: string) {
-    const confirmed = confirm('Setujui pengajuan izin ini?');
-    if (!confirmed) return;
-
     try {
       const headers = {
         ...this.authService.getAuthHeaders(),
@@ -166,22 +171,19 @@ export class Dashboard implements OnInit {
 
       if (response.ok) {
         await this.loadDashboardData();
-        alert('Pengajuan izin telah disetujui');
+        this.notificationService.success('Pengajuan izin telah disetujui');
       } else if (response.status === 403) {
-        alert('Anda tidak memiliki akses untuk menyetujui pengajuan ini');
+        this.notificationService.error('Anda tidak memiliki akses untuk menyetujui pengajuan ini');
       } else {
-        alert('Gagal menyetujui pengajuan izin');
+        this.notificationService.error('Gagal menyetujui pengajuan izin');
       }
     } catch (error) {
       console.error('Error approving leave request:', error);
-      alert('Koneksi ke server gagal');
+      this.notificationService.error('Koneksi ke server gagal');
     }
   }
 
   async rejectLeaveRequest(id: string) {
-    const confirmed = confirm('Tolak pengajuan izin ini?');
-    if (!confirmed) return;
-
     try {
       const headers = {
         ...this.authService.getAuthHeaders(),
@@ -202,15 +204,15 @@ export class Dashboard implements OnInit {
 
       if (response.ok) {
         await this.loadDashboardData();
-        alert('Pengajuan izin telah ditolak');
+        this.notificationService.success('Pengajuan izin telah ditolak');
       } else if (response.status === 403) {
-        alert('Anda tidak memiliki akses untuk menolak pengajuan ini');
+        this.notificationService.error('Anda tidak memiliki akses untuk menolak pengajuan ini');
       } else {
-        alert('Gagal menolak pengajuan izin');
+        this.notificationService.error('Gagal menolak pengajuan izin');
       }
     } catch (error) {
       console.error('Error rejecting leave request:', error);
-      alert('Koneksi ke server gagal');
+      this.notificationService.error('Koneksi ke server gagal');
     }
   }
 }

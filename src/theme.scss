@@ -4,48 +4,20 @@
 // Include the common styles for Angular Material
 @include mat.core();
 
-// Define custom orange palette based on school branding (#f97316)
-$plandi-orange-palette: (
-  50: #fff7ed,
-  100: #ffedd5,
-  200: #fed7aa,
-  300: #fdba74,
-  400: #fb923c,
-  500: #f97316,
-  600: #ea580c,
-  700: #c2410c,
-  800: #9a3412,
-  900: #7c2d12,
-  contrast: (
-    50: #000000,
-    100: #000000,
-    200: #000000,
-    300: #000000,
-    400: #000000,
-    500: #ffffff,
-    600: #ffffff,
-    700: #ffffff,
-    800: #ffffff,
-    900: #ffffff,
-  )
-);
-
-// Define the theme
-$plandi-primary: mat.define-palette($plandi-orange-palette, 500);
-$plandi-accent: mat.define-palette(mat.$blue-palette, 600);
-$plandi-warn: mat.define-palette(mat.$red-palette, 600);
-
-// Create the theme
-$plandi-theme: mat.define-light-theme((
+// Create M3 theme with custom orange primary color
+$plandi-theme: mat.define-theme((
   color: (
-    primary: $plandi-primary,
-    accent: $plandi-accent,
-    warn: $plandi-warn,
+    theme-type: light,
+    primary: mat.$orange-palette,
+    tertiary: mat.$blue-palette,
   ),
-  typography: mat.define-typography-config(
-    $font-family: '"Inter", "Poppins", sans-serif',
+  typography: (
+    plain-family: 'Inter, Poppins, sans-serif',
+    brand-family: 'Inter, Poppins, sans-serif',
   ),
-  density: 0,
+  density: (
+    scale: 0,
+  )
 ));
 
 // Include theme styles for core and each component used
