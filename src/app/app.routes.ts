@@ -32,29 +32,36 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
-    path: 'admin/dashboard',
-    loadComponent: () => import('./pages/admin/dashboard/dashboard').then(m => m.Dashboard),
-    canActivate: [authGuard]
-  },
-  {
-    path: 'admin/check-in',
-    loadComponent: () => import('./pages/absensi/check-in/check-in').then(m => m.CheckIn),
-    canActivate: [authGuard]
-  },
-  {
-    path: 'admin/laporan',
-    loadComponent: () => import('./pages/absensi/report/report').then(m => m.Report),
-    canActivate: [authGuard]
-  },
-  {
-    path: 'admin/siswa',
-    loadComponent: () => import('./pages/absensi/students/students').then(m => m.Students),
-    canActivate: [authGuard]
-  },
-  {
     path: 'admin',
-    redirectTo: 'admin/dashboard',
-    pathMatch: 'full'
+    loadComponent: () => import('./layouts/admin/admin-layout.component').then(m => m.AdminLayoutComponent),
+    canActivate: [authGuard],
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./pages/admin/dashboard/dashboard').then(m => m.Dashboard)
+      },
+      {
+        path: 'check-in',
+        loadComponent: () => import('./pages/absensi/check-in/check-in').then(m => m.CheckIn)
+      },
+      {
+        path: 'laporan',
+        loadComponent: () => import('./pages/absensi/report/report').then(m => m.Report)
+      },
+      {
+        path: 'siswa',
+        loadComponent: () => import('./pages/absensi/students/students').then(m => m.Students)
+      },
+      {
+        path: 'leave-requests',
+        loadComponent: () => import('./pages/admin/leave-requests/leave-requests').then(m => m.LeaveRequestsComponent)
+      },
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      }
+    ]
   },
   // Redirect old public routes to admin (with auth required)
   {

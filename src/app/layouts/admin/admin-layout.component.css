@@ -1,0 +1,218 @@
+.admin-sidenav-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.admin-sidenav {
+  width: 280px;
+  background-color: #ffffff;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Sidenav Header */
+.sidenav-header {
+  padding: 24px 16px;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: white;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background-color: white;
+  padding: 4px;
+  object-fit: contain;
+}
+
+.school-info {
+  flex: 1;
+}
+
+.school-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.school-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+/* Navigation */
+.nav-list {
+  padding: 8px 0;
+}
+
+.nav-item {
+  margin: 4px 8px;
+  border-radius: 8px !important;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+  background-color: rgba(249, 115, 22, 0.08) !important;
+}
+
+.nav-item.active {
+  background-color: rgba(249, 115, 22, 0.12) !important;
+  color: #f97316 !important;
+}
+
+.nav-item.active mat-icon {
+  color: #f97316 !important;
+}
+
+/* Sidenav Footer */
+.sidenav-footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background-color: #f9fafb;
+  padding: 16px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.user-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-role {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Top Toolbar */
+.top-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+/* Main Content */
+.main-content {
+  background-color: #f3f4f6;
+  min-height: 100vh;
+}
+
+.content-wrapper {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Menus */
+.menu-header {
+  padding: 16px 16px 8px;
+}
+
+.menu-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.notification-menu {
+  min-width: 320px;
+}
+
+.empty-notification {
+  padding: 32px 16px;
+  text-align: center;
+  color: #9ca3af;
+}
+
+.empty-notification mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+.empty-notification p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.user-menu-header {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-menu-header .avatar {
+  width: 48px;
+  height: 48px;
+  font-size: 16px;
+}
+
+.user-menu-header .user-name {
+  font-size: 16px;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-sidenav {
+    width: 240px;
+  }
+
+  .content-wrapper {
+    padding: 16px;
+  }
+}

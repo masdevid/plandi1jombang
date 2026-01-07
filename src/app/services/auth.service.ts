@@ -1,15 +1,17 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface User {
   id: string;
   nip: string;
-  name: string;
+  full_name: string; // Changed to match API response
+  name?: string; // Keep for backward compatibility
   email: string;
   role: 'admin' | 'teacher' | 'staff';
   isWaliKelas: boolean;
-  assignedClass: string | null;
+  assigned_class: string | null; // Changed to match API response
+  assignedClass?: string | null; // Keep for backward compatibility
   phone: string;
   photo: string | null;
   active: boolean;
@@ -27,6 +29,10 @@ export interface AuthResponse {
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
   public currentUser$ = this.currentUserSubject.asObservable();
+
+  // Signal-based API for modern components
+  private _currentUserSignal = signal<User | null>(this.getUserFromStorage());
+  public currentUser = computed(() => this._currentUserSignal());
 
   private apiUrl = environment.apiUrl;
 
@@ -139,6 +145,7 @@ export class AuthService {
       }
 
       this.currentUserSubject.next(data.user);
+      this._currentUserSignal.set(data.user);
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
@@ -171,6 +178,7 @@ export class AuthService {
       }
 
       this.currentUserSubject.next(null);
+      this._currentUserSignal.set(null);
     }
   }
 
@@ -194,6 +202,7 @@ export class AuthService {
         localStorage.setItem('currentUser', JSON.stringify(data.user));
       }
       this.currentUserSubject.next(data.user);
+      this._currentUserSignal.set(data.user);
       return true;
     } catch (error) {
       console.error('Token verification error:', error);

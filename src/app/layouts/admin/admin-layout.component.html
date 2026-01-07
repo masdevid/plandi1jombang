@@ -1,0 +1,139 @@
+<mat-sidenav-container class="admin-sidenav-container" autosize>
+  <!-- Side Navigation -->
+  <mat-sidenav
+    #sidenav
+    class="admin-sidenav"
+    [opened]="sidenavOpened()"
+    [mode]="'side'"
+    [fixedInViewport]="true"
+    fixedTopGap="0"
+  >
+    <!-- Sidenav Header -->
+    <div class="sidenav-header">
+      <div class="logo-container">
+        <img src="/icons/logo.png" alt="Logo SDN Plandi 1" class="logo" />
+        <div class="school-info">
+          <h3 class="school-name">SDN Plandi 1</h3>
+          <p class="school-subtitle">Admin Panel</p>
+        </div>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Navigation Items -->
+    <mat-nav-list class="nav-list">
+      @for (item of navItems; track item.route) {
+        @if (shouldShowNavItem(item)) {
+          <a
+            mat-list-item
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            class="nav-item"
+          >
+            <mat-icon matListItemIcon [matBadge]="item.badge || null" [matBadgeHidden]="!item.badge" matBadgeColor="warn" matBadgeSize="small">
+              {{ item.icon }}
+            </mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+          </a>
+        }
+      }
+    </mat-nav-list>
+
+    <div class="sidenav-footer">
+      <mat-divider></mat-divider>
+      <div class="user-info">
+        <div class="avatar">{{ userInitials }}</div>
+        <div class="user-details">
+          <div class="user-name">{{ currentUser()?.full_name || 'User' }}</div>
+          <div class="user-role">{{ userRole }}</div>
+        </div>
+      </div>
+    </div>
+  </mat-sidenav>
+
+  <!-- Main Content -->
+  <mat-sidenav-content class="main-content">
+    <!-- Top Toolbar -->
+    <mat-toolbar class="top-toolbar" color="primary">
+      <button
+        mat-icon-button
+        (click)="toggleSidenav()"
+        matTooltip="Toggle Menu"
+      >
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <span class="toolbar-spacer"></span>
+
+      <!-- Notification Button -->
+      <button
+        mat-icon-button
+        matTooltip="Notifications"
+        [matMenuTriggerFor]="notificationMenu"
+      >
+        <mat-icon [matBadge]="navItems.find(item => item.route === '/admin/leave-requests')?.badge || 0" [matBadgeHidden]="!navItems.find(item => item.route === '/admin/leave-requests')?.badge" matBadgeColor="warn" matBadgeSize="small">
+          notifications
+        </mat-icon>
+      </button>
+
+      <!-- User Menu -->
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="userMenu"
+        matTooltip="User Menu"
+      >
+        <mat-icon>account_circle</mat-icon>
+      </button>
+
+      <!-- Notification Menu -->
+      <mat-menu #notificationMenu="matMenu" class="notification-menu">
+        <div class="menu-header">
+          <h3>Notifications</h3>
+        </div>
+        <mat-divider></mat-divider>
+        @if ((navItems.find(item => item.route === '/admin/leave-requests')?.badge || 0) > 0) {
+          <button mat-menu-item [routerLink]="['/admin/leave-requests']">
+            <mat-icon>event</mat-icon>
+            <span>{{ navItems.find(item => item.route === '/admin/leave-requests')?.badge }} pending leave requests</span>
+          </button>
+        } @else {
+          <div class="empty-notification">
+            <mat-icon>notifications_none</mat-icon>
+            <p>No new notifications</p>
+          </div>
+        }
+      </mat-menu>
+
+      <!-- User Menu -->
+      <mat-menu #userMenu="matMenu">
+        <div class="user-menu-header">
+          <div class="avatar">{{ userInitials }}</div>
+          <div class="user-details">
+            <div class="user-name">{{ currentUser()?.full_name || 'User' }}</div>
+            <div class="user-email">{{ currentUser()?.email || '' }}</div>
+          </div>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item disabled>
+          <mat-icon>person</mat-icon>
+          <span>Profile</span>
+        </button>
+        <button mat-menu-item disabled>
+          <mat-icon>settings</mat-icon>
+          <span>Settings</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Logout</span>
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <!-- Router Outlet -->
+    <div class="content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

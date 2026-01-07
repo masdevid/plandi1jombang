@@ -1,0 +1,158 @@
+// Custom Angular Material Theme for SDN Plandi 1 Jombang
+@use '@angular/material' as mat;
+
+// Include the common styles for Angular Material
+@include mat.core();
+
+// Define custom orange palette based on school branding (#f97316)
+$plandi-orange-palette: (
+  50: #fff7ed,
+  100: #ffedd5,
+  200: #fed7aa,
+  300: #fdba74,
+  400: #fb923c,
+  500: #f97316,
+  600: #ea580c,
+  700: #c2410c,
+  800: #9a3412,
+  900: #7c2d12,
+  contrast: (
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #000000,
+    400: #000000,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+  )
+);
+
+// Define the theme
+$plandi-primary: mat.define-palette($plandi-orange-palette, 500);
+$plandi-accent: mat.define-palette(mat.$blue-palette, 600);
+$plandi-warn: mat.define-palette(mat.$red-palette, 600);
+
+// Create the theme
+$plandi-theme: mat.define-light-theme((
+  color: (
+    primary: $plandi-primary,
+    accent: $plandi-accent,
+    warn: $plandi-warn,
+  ),
+  typography: mat.define-typography-config(
+    $font-family: '"Inter", "Poppins", sans-serif',
+  ),
+  density: 0,
+));
+
+// Include theme styles for core and each component used
+@include mat.all-component-themes($plandi-theme);
+
+// Custom Material overrides for school theme
+.mat-mdc-raised-button.mat-primary {
+  font-weight: 600;
+}
+
+.mat-mdc-card {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+// Sidenav custom styling
+.admin-sidenav {
+  .mat-drawer-inner-container {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+}
+
+// Custom chip colors for status
+.status-chip {
+  &.present {
+    background-color: #10b981 !important;
+    color: white !important;
+  }
+
+  &.sick {
+    background-color: #f59e0b !important;
+    color: white !important;
+  }
+
+  &.excused {
+    background-color: #3b82f6 !important;
+    color: white !important;
+  }
+
+  &.absent {
+    background-color: #ef4444 !important;
+    color: white !important;
+  }
+
+  &.pending {
+    background-color: #f59e0b !important;
+    color: white !important;
+  }
+
+  &.approved {
+    background-color: #10b981 !important;
+    color: white !important;
+  }
+
+  &.rejected {
+    background-color: #ef4444 !important;
+    color: white !important;
+  }
+}
+
+// Snackbar custom styling
+.snackbar-success {
+  .mdc-snackbar__surface {
+    background-color: #10b981 !important;
+  }
+
+  .mat-mdc-snack-bar-label,
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+.snackbar-error {
+  .mdc-snackbar__surface {
+    background-color: #ef4444 !important;
+  }
+
+  .mat-mdc-snack-bar-label,
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+.snackbar-warning {
+  .mdc-snackbar__surface {
+    background-color: #f59e0b !important;
+  }
+
+  .mat-mdc-snack-bar-label,
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+.snackbar-info {
+  .mdc-snackbar__surface {
+    background-color: #3b82f6 !important;
+  }
+
+  .mat-mdc-snack-bar-label,
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
